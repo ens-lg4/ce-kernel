@@ -66,7 +66,7 @@ def access(entry_name, function_name, arg_dict):
         else:
             # leave out irrelevant args by creating a slice and mixing in the defaults:
             #
-            relevant_arg_dict   = {args[i] : arg_dict.get(args[i], defaults[i-num_required]) for i in range(num_args)}
+            relevant_arg_dict   = {args[i] : arg_dict.get(args[i]) for i in range(num_args) if args[i] in arg_dict}
 
         print('The "{}" function IS callable with {}'.format(function_name, relevant_arg_dict))
         ret_values = function_object(**relevant_arg_dict)
@@ -121,4 +121,3 @@ if __name__ == '__main__':
     # an incomplete/underdetermined access call:
     s = access(None, 'baz', { 'beta' : 200 } )
     print("S_bar = {}\n".format(s))
-
