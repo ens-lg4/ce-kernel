@@ -40,6 +40,14 @@ class Entry:
         return self.parameters.get(param_name, None)
 
 
+    def set_param(self, param_name, param_value):
+
+        if not self.parameters:
+            self.load_own_parameters()
+
+        self.parameters[param_name] = param_value
+
+
     def call(self, function_name, given_arg_dict):
         """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
@@ -58,8 +66,11 @@ if __name__ == '__main__':
     p, q = foo_entry.call('foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_foo = {}, Q_foo = {}\n".format(p,q))
 
+    foo_entry.set_param('fourth', 'vierte')
+
     foo2 = foo_entry.get_param('second')
-    print("foo2 = {}\n".format(foo2))
+    foo4 = foo_entry.get_param('fourth')
+    print("foo2 = {}, foo4 = {}\n".format(foo2, foo4))
 
     dir_path    = foo_entry.get_path()
     file_path   = foo_entry.get_path('abracadabra.txt')
