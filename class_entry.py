@@ -9,6 +9,10 @@ class Entry:
         self.entry_path = entry_path
 
 
+    def get_name(self):
+        return self.entry_name
+
+
     def get_path(self, filename=None):
         if filename:
             return os.path.join(self.entry_path, filename)
@@ -37,3 +41,13 @@ if __name__ == '__main__':
     dir_path    = foo_entry.get_path()
     file_path   = foo_entry.get_path('abracadabra.txt')
     print("dir_path = {}, file_path = {}\n".format(dir_path, file_path))
+
+
+    iterative_entry = Entry('iterative_functions', 'entries/iterative_functions')
+    recursive_entry = Entry('recursive_functions', 'entries/recursive_functions')
+
+    for funcs_entry in (iterative_entry, recursive_entry):
+        entry_name      = funcs_entry.get_name()
+        fib_5           = funcs_entry.call('fibonacci', {'n':5} )
+        fact_5          = funcs_entry.call('factorial', {'n':5} )
+        print("{} : fib(5) = {}, fact(5) = {}\n".format(entry_name, fib_5, fact_5))
