@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 import utils
 
@@ -7,6 +8,7 @@ class Entry:
     def __init__(self, entry_name, entry_path):
         self.entry_name = entry_name
         self.entry_path = entry_path
+        self.parameters = None
 
 
     def get_name(self):
@@ -18,6 +20,24 @@ class Entry:
             return os.path.join(self.entry_path, filename)
         else:
             return self.entry_path
+
+
+    def load_own_parameters(self):
+        param_filepath = self.get_path('parameters.json')
+
+        if os.path.isfile( param_filepath ):
+            with open( param_filepath ) as fd:
+                self.parameters = json.load(fd)
+        else:
+            self.parameters = {}
+
+
+    def get_param(self, param_name):
+
+        if not self.parameters:
+            self.load_own_parameters()
+
+        return self.parameters.get(param_name, None)
 
 
     def call(self, function_name, given_arg_dict):
@@ -37,6 +57,9 @@ if __name__ == '__main__':
 
     p, q = foo_entry.call('foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_foo = {}, Q_foo = {}\n".format(p,q))
+
+    foo2 = foo_entry.get_param('second')
+    print("foo2 = {}\n".format(foo2))
 
     dir_path    = foo_entry.get_path()
     file_path   = foo_entry.get_path('abracadabra.txt')
