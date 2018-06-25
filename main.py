@@ -39,7 +39,7 @@ def get_cached_module(entry_name=None, path_to_entries='entries', module_name='p
     return cached_module
 
 
-def access(entry_name, function_name, arg_dict):
+def access(entry_name, function_name, given_arg_dict):
     """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
         The function can be declared as having named args, defaults and possibly also **kwargs.
@@ -48,28 +48,32 @@ def access(entry_name, function_name, arg_dict):
     module_object   = get_cached_module(entry_name)
     function_object = getattr(module_object, function_name)
 
-    args, varargs, varkw, defaults = inspect.getargspec(function_object)
+    supported_arg_names, varargs, varkw, defaults = inspect.getargspec(function_object)
 
-    num_args        = len(args)
-    num_required    = num_args-len(defaults or tuple())
-    required_args   = args[:num_required]
-    missing_args    = set(required_args) - set(arg_dict)
+    num_expected        = len(supported_arg_names)
+    num_defaulted       = len(defaults or tuple())
+    num_required        = num_expected-num_defaulted
+    required_arg_names  = supported_arg_names[:num_required]
+    missing_args_set    = set(required_arg_names) - set(given_arg_dict)
 
-    if missing_args:
-        print('The "{}" function IS NOT callable with {}'.format(function_name, arg_dict))
-        print('Missing required positional args: {}'.format(missing_args))
+    if missing_args_set:
+        print('The "{}" function IS NOT callable with {}'.format(function_name, given_arg_dict))
+        print('Missing required positional supported_arg_names: {}'.format(missing_args_set))
     else:
+        args_passed_as_list = [given_arg_dict[k] for k in required_arg_names]
+        print("required_arg_names = {}, args_passed_as_list = {}".format(required_arg_names, args_passed_as_list))
+
         if varkw:
-            # unmentioned args ( set(arg_dict) - set(args) ) will end up in **kwargs:
+            # unmentioned args ( set(given_arg_dict) - set(supported_arg_names) ) will end up in **kwargs:
             #
-            relevant_arg_dict   = arg_dict
+            args_passed_as_dict = {supported_arg_names[i] : given_arg_dict.get(supported_arg_names[i]) for i in range(num_required, num_expected)}
         else:
             # leave out irrelevant args by creating a slice and mixing in the defaults:
             #
-            relevant_arg_dict   = {args[i] : arg_dict.get(args[i]) for i in range(num_args) if args[i] in arg_dict}
+            args_passed_as_dict = {supported_arg_names[i] : given_arg_dict.get(supported_arg_names[i]) for i in range(num_required, num_expected) if supported_arg_names[i] in given_arg_dict}
 
-        print('The "{}" function IS callable with {}'.format(function_name, relevant_arg_dict))
-        ret_values = function_object(**relevant_arg_dict)
+        print('The "{}" function IS callable with {}'.format(function_name, args_passed_as_dict))
+        ret_values = function_object(*args_passed_as_list, **args_passed_as_dict)
         return ret_values
 
 
