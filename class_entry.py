@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import json
 import os
 import utils
 
@@ -8,7 +7,8 @@ class Entry:
     def __init__(self, entry_name, entry_path):
         self.entry_name = entry_name
         self.entry_path = entry_path
-        self.load_own_parameters()
+        self.load_own_meta()            # FIXME: switch to lazy-loading for efficiency
+        self.load_own_parameters()      # FIXME: switch to lazy-loading for efficiency
 
 
     def get_name(self):
@@ -23,13 +23,11 @@ class Entry:
 
 
     def load_own_parameters(self):
-        param_filepath = self.get_path('parameters.json')
+        self.parameters = utils.quietly_load_json_config( self.get_path('parameters.json') )
 
-        if os.path.isfile( param_filepath ):
-            with open( param_filepath ) as fd:
-                self.parameters = json.load(fd)
-        else:
-            self.parameters = {}
+
+    def load_own_meta(self):
+        self.meta = utils.quietly_load_json_config( self.get_path('meta.json') )
 
 
     def get_param(self, param_name):
@@ -79,3 +77,5 @@ if __name__ == '__main__':
         fib_5           = funcs_entry.call('fibonacci', {'n':5} )
         fact_5          = funcs_entry.call('factorial', {'n':5} )
         print("{} : fib(5) = {}, fact(5) = {}\n".format(entry_name, fib_5, fact_5))
+
+    print("State of weather : {}\n".format(foo_entry.meta.get('weather')))

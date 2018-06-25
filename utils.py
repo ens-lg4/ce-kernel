@@ -8,6 +8,7 @@
 import os           # to manipulate file paths
 import sys          # to refer to THIS module
 import imp          # to import modules dynamically
+import json         # to load JSON-based config files
 import inspect      # to obtain a random function's signature
 import builtins     # to test hex() function
 
@@ -73,6 +74,15 @@ def access(module_object, function_name, given_arg_dict):
         print('The "{}" function IS callable with positional args {}:{} and named args {}'.format(function_name, required_arg_names, args_passed_as_list, args_passed_as_dict))
         ret_values = function_object(*args_passed_as_list, **args_passed_as_dict)
         return ret_values
+
+
+def quietly_load_json_config( filepath ):
+
+    if os.path.isfile( filepath ):
+        with open( filepath ) as fd:
+            return json.load(fd)
+    else:
+        return {}
 
 
 def baz(alpha, beta=22, gamma=333):
