@@ -8,7 +8,7 @@ class Entry:
     def __init__(self, entry_name, entry_path):
         self.entry_name = entry_name
         self.entry_path = entry_path
-        self.parameters = None
+        self.load_own_parameters()
 
 
     def get_name(self):
@@ -34,16 +34,10 @@ class Entry:
 
     def get_param(self, param_name):
 
-        if not self.parameters:
-            self.load_own_parameters()
-
         return self.parameters.get(param_name, None)
 
 
     def set_param(self, param_name, param_value):
-
-        if not self.parameters:
-            self.load_own_parameters()
 
         self.parameters[param_name] = param_value
 
