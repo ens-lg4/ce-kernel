@@ -60,7 +60,6 @@ def access(module_object, function_name, given_arg_dict):
         print('Missing required positional supported_arg_names: {}'.format(missing_args_set))
     else:
         args_passed_as_list = [given_arg_dict[k] for k in required_arg_names]
-        print("required_arg_names = {}, args_passed_as_list = {}".format(required_arg_names, args_passed_as_list))
 
         if varkw:
             # unmentioned args ( set(given_arg_dict) - set(supported_arg_names) ) will end up in **kwargs:
@@ -71,7 +70,7 @@ def access(module_object, function_name, given_arg_dict):
             #
             args_passed_as_dict = {supported_arg_names[i] : given_arg_dict.get(supported_arg_names[i]) for i in range(num_required, num_expected) if supported_arg_names[i] in given_arg_dict}
 
-        print('The "{}" function IS callable with {}'.format(function_name, args_passed_as_dict))
+        print('The "{}" function IS callable with positional args {}:{} and named args {}'.format(function_name, required_arg_names, args_passed_as_list, args_passed_as_dict))
         ret_values = function_object(*args_passed_as_list, **args_passed_as_dict)
         return ret_values
 
