@@ -9,6 +9,7 @@ import os           # to manipulate file paths
 import sys          # to refer to THIS module
 import imp          # to import modules dynamically
 import inspect      # to obtain a random function's signature
+from builtins import hex
 
 
 def get_entrys_python_module(module_path, module_name):
@@ -125,3 +126,6 @@ if __name__ == '__main__':
     # an incomplete/underdetermined access call:
     s = access(None, 'baz', { 'beta' : 200 } )
     print("S_bar = {}\n".format(s))
+
+    h = access(None, 'hex', { 'number' : 31 })
+    print("hex = {}\n".format(h))
