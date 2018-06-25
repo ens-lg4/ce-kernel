@@ -40,6 +40,16 @@ class Entry:
         self.parameters[param_name] = param_value
 
 
+    def overlay_params(self, overlaying_dict):
+
+        underlying_dict = self.parameters
+
+        if len(overlaying_dict):
+            return { k : overlaying_dict.get(k, underlying_dict.get(k) ) for k in set(overlaying_dict) | set(underlying_dict) }
+        else:
+            return underlying_dict
+
+
     def call(self, function_name, given_arg_dict):
         """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
@@ -47,8 +57,9 @@ class Entry:
         """
 
         module_object   = utils.get_cached_module(self.entry_name, self.entry_path)
+        merged_params   = self.overlay_params( given_arg_dict )
 
-        return utils.access(module_object, function_name, given_arg_dict)
+        return utils.access(module_object, function_name, merged_params)
 
 
 if __name__ == '__main__':
@@ -73,9 +84,9 @@ if __name__ == '__main__':
     recursive_entry = Entry('recursive_functions', 'entries/recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):
-        entry_name      = funcs_entry.get_name()
-        fib_5           = funcs_entry.call('fibonacci', {'n':5} )
-        fact_5          = funcs_entry.call('factorial', {'n':5} )
-        print("{} : fib(5) = {}, fact(5) = {}\n".format(entry_name, fib_5, fact_5))
+        entry_name  = funcs_entry.get_name()
+        fib_n       = funcs_entry.call('fibonacci', {} )
+        fact_n      = funcs_entry.call('factorial', {} )
+        print("{} : fib(n) = {}, fact(n) = {}\n".format(entry_name, fib_n, fact_n))
 
     print("State of weather : {}\n".format(foo_entry.meta.get('weather')))
