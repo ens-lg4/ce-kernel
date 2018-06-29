@@ -80,6 +80,12 @@ if __name__ == '__main__':
     print("dir_path = {}, file_path = {}\n".format(dir_path, file_path))
 
 
+    bar_entry = Entry('bar_entry', 'entries/bar_entry')
+
+    p, q = bar_entry.call('bar', { 'alpha' : 100, 'beta' : 200, 'epsilon' : 500, 'lambda' : 7777 } )
+    print("P_bar = {}, Q_bar = {}\n".format(p,q))
+
+
     iterative_entry = Entry('iterative_functions', 'entries/iterative_functions')
     recursive_entry = Entry('recursive_functions', 'entries/recursive_functions')
 
