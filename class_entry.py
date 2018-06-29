@@ -96,3 +96,7 @@ if __name__ == '__main__':
         print("{} : fib(n) = {}, fact(n) = {}\n".format(entry_name, fib_n, fact_n))
 
     print("State of weather : {}\n".format(foo_entry.meta.get('weather')))
+
+    params_entry    = Entry('params_entry', 'entries/params_entry')
+    params_dict     = params_entry.call('show', {'alpha' : 'Hello', 'gamma' : 'World', 'delta' : 420} )
+    print(" 'show' method when called via API returned : {}\n".format(params_dict))
