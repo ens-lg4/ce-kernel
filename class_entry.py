@@ -5,8 +5,9 @@ import utils
 
 class Entry:
     def __init__(self, entry_name, entry_path, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
-        self.entry_name = entry_name
-        self.entry_path = entry_path
+        self.entry_name     = entry_name
+        self.entry_path     = entry_path
+        self.module_object  = None          # placeholder for lazy-loading
 
         self.load_own_parameters(*parameters_location)  # FIXME: switch to lazy-loading for efficiency
         self.load_own_meta(*meta_location)              # FIXME: switch to lazy-loading for efficiency
@@ -21,6 +22,12 @@ class Entry:
             return os.path.join(self.entry_path, filename)
         else:
             return self.entry_path
+
+
+    def get_module_object(self):
+        self.module_object = self.module_object or utils.get_entrys_python_module(self.entry_path)
+
+        return self.module_object
 
 
     def load_own_parameters(self, rel_path, struct_path):
@@ -57,7 +64,7 @@ class Entry:
             The function can be declared as having positional args, named args with defaults and possibly also **kwargs.
         """
 
-        module_object   = utils.get_cached_module(self.entry_name, self.entry_path)
+        module_object   = self.get_module_object()
         merged_params   = self.overlay_params( given_arg_dict )
 
         return utils.free_access(module_object, function_name, merged_params)

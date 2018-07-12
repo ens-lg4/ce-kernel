@@ -13,7 +13,7 @@ import inspect      # to obtain a random function's signature
 import builtins     # to test hex() function
 
 
-def get_entrys_python_module(module_path, module_name):
+def get_entrys_python_module(module_path, module_name='python_code'):
     """ Find and load a python module given the path and filename.
 
     """
@@ -22,22 +22,6 @@ def get_entrys_python_module(module_path, module_name):
     module_object = imp.load_module(path_to_module, open_file_descriptor, path_to_module, module_description)
 
     return module_object
-
-
-_module_cache = {}
-
-def get_cached_module(entry_name=None, module_path=None, module_name='python_code'):
-
-    if entry_name == None:
-        return sys.modules[__name__]
-
-    cache_key       = os.path.join(module_path, module_name)
-    cached_module   = _module_cache.get(cache_key)
-
-    if not cached_module:
-        cached_module = _module_cache[cache_key] = get_entrys_python_module(module_path, module_name)
-
-    return cached_module
 
 
 def free_access(module_object, function_name, given_arg_dict):
@@ -104,9 +88,9 @@ def baz(alpha, beta=22, gamma=333):
 
 if __name__ == '__main__':
 
-    this_module = get_cached_module(None)
-    foo_module  = get_cached_module('foo_entry', 'entries/foo_entry')
-    bar_module  = get_cached_module('bar_entry', 'entries/bar_entry')
+    this_module = sys.modules[__name__]
+    foo_module  = get_entrys_python_module('entries/foo_entry')
+    bar_module  = get_entrys_python_module('entries/bar_entry')
 
     # a direct call of a remote function:
     r = foo_module.foo(10, 20, 30, epsilon=70)
