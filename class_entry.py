@@ -7,10 +7,15 @@ class Entry:
     def __init__(self, entry_path, entry_name=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
         self.entry_path     = entry_path
         self.entry_name     = entry_name or os.path.basename(self.entry_path)
-        self.module_object  = None          # placeholder for lazy-loading
 
-        self.load_own_parameters(*parameters_location)  # FIXME: switch to lazy-loading for efficiency
-        self.load_own_meta(*meta_location)              # FIXME: switch to lazy-loading for efficiency
+        ## Placeholders for lazy loading:
+        #
+        self.module_object  = None
+        self.meta           = None
+        self.parameters     = None
+
+        self.parameters_rel_path, self.parameters_struct_path   = parameters_location
+        self.meta_rel_path, self.meta_struct_path               = meta_location
 
 
     def get_name(self):
@@ -30,27 +35,31 @@ class Entry:
         return self.module_object
 
 
-    def load_own_parameters(self, rel_path, struct_path):
-        self.parameters = utils.quietly_load_json_config( self.get_path(rel_path), struct_path )
+    def get_metas(self):
+        self.meta = self.meta or utils.quietly_load_json_config( self.get_path(self.meta_rel_path), self.meta_struct_path )
+
+        return self.meta
 
 
-    def load_own_meta(self, rel_path, struct_path):
-        self.meta = utils.quietly_load_json_config( self.get_path(rel_path), struct_path )
+    def get_parameters(self):
+        self.parameters = self.parameters or utils.quietly_load_json_config( self.get_path(self.parameters_rel_path), self.parameters_struct_path )
+
+        return self.parameters
 
 
     def get_param(self, param_name):
 
-        return self.parameters.get(param_name, None)
+        return self.get_parameters().get(param_name, None)
 
 
     def set_param(self, param_name, param_value):
 
-        self.parameters[param_name] = param_value
+        self.get_parameters()[param_name] = param_value
 
 
     def overlay_params(self, overlaying_dict):
 
-        underlying_dict = self.parameters
+        underlying_dict = self.get_parameters()
 
         if len(overlaying_dict):
             return { k : overlaying_dict.get(k, underlying_dict.get(k) ) for k in set(overlaying_dict) | set(underlying_dict) }
@@ -86,7 +95,7 @@ if __name__ == '__main__':
     dir_path    = foo_entry.get_path()
     file_path   = foo_entry.get_path('abracadabra.txt')
     print("dir_path = {}, file_path = {}\n".format(dir_path, file_path))
-
+    print("State of weather : {}\n".format(foo_entry.get_metas().get('weather')))
 
     bar_entry = Entry('entries/bar_entry')
 
@@ -102,8 +111,6 @@ if __name__ == '__main__':
         fib_n       = funcs_entry.call('fibonacci', {} )
         fact_n      = funcs_entry.call('factorial', {} )
         print("{} : fib(n) = {}, fact(n) = {}\n".format(entry_name, fib_n, fact_n))
-
-    print("State of weather : {}\n".format(foo_entry.meta.get('weather')))
 
     params_entry    = Entry('entries/params_entry')
     params_dict     = params_entry.call('show', {'alpha' : 'Hello', 'gamma' : 'World', 'delta' : 420} )
