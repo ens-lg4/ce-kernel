@@ -4,9 +4,9 @@ import os
 import utils
 
 class Entry:
-    def __init__(self, entry_name, entry_path, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
-        self.entry_name     = entry_name
+    def __init__(self, entry_path, entry_name=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
         self.entry_path     = entry_path
+        self.entry_name     = entry_name or os.path.basename(self.entry_path)
         self.module_object  = None          # placeholder for lazy-loading
 
         self.load_own_parameters(*parameters_location)  # FIXME: switch to lazy-loading for efficiency
@@ -72,7 +72,7 @@ class Entry:
 
 if __name__ == '__main__':
 
-    foo_entry = Entry('foo_entry', 'entries/foo_entry')
+    foo_entry = Entry('entries/foo_entry')
 
     p, q = foo_entry.call('foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_foo = {}, Q_foo = {}\n".format(p,q))
@@ -88,14 +88,14 @@ if __name__ == '__main__':
     print("dir_path = {}, file_path = {}\n".format(dir_path, file_path))
 
 
-    bar_entry = Entry('bar_entry', 'entries/bar_entry')
+    bar_entry = Entry('entries/bar_entry')
 
     p, q = bar_entry.call('bar', { 'alpha' : 100, 'beta' : 200, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
 
 
-    iterative_entry = Entry('iterative_functions', 'entries/iterative_functions', parameters_location=('parameters.json',["alternative", "place", 1]))
-    recursive_entry = Entry('recursive_functions', 'entries/recursive_functions')
+    iterative_entry = Entry('entries/iterative_functions', parameters_location=('parameters.json',["alternative", "place", 1]))
+    recursive_entry = Entry('entries/recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):
         entry_name  = funcs_entry.get_name()
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     print("State of weather : {}\n".format(foo_entry.meta.get('weather')))
 
-    params_entry    = Entry('params_entry', 'entries/params_entry')
+    params_entry    = Entry('entries/params_entry')
     params_dict     = params_entry.call('show', {'alpha' : 'Hello', 'gamma' : 'World', 'delta' : 420} )
     print(" 'show' method when called via API returned : {}\n".format(params_dict))
 
