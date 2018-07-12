@@ -4,11 +4,12 @@ import os
 import utils
 
 class Entry:
-    def __init__(self, entry_name, entry_path, parameters_location='parameters.json', meta_location='meta.json'):
+    def __init__(self, entry_name, entry_path, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
         self.entry_name = entry_name
         self.entry_path = entry_path
-        self.load_own_parameters(parameters_location)   # FIXME: switch to lazy-loading for efficiency
-        self.load_own_meta(meta_location)               # FIXME: switch to lazy-loading for efficiency
+
+        self.load_own_parameters(*parameters_location)  # FIXME: switch to lazy-loading for efficiency
+        self.load_own_meta(*meta_location)              # FIXME: switch to lazy-loading for efficiency
 
 
     def get_name(self):
@@ -22,12 +23,12 @@ class Entry:
             return self.entry_path
 
 
-    def load_own_parameters(self, location):
-        self.parameters = utils.quietly_load_json_config( self.get_path(location) )
+    def load_own_parameters(self, rel_path, struct_path):
+        self.parameters = utils.quietly_load_json_config( self.get_path(rel_path), struct_path )
 
 
-    def load_own_meta(self, location):
-        self.meta = utils.quietly_load_json_config( self.get_path(location) )
+    def load_own_meta(self, rel_path, struct_path):
+        self.meta = utils.quietly_load_json_config( self.get_path(rel_path), struct_path )
 
 
     def get_param(self, param_name):
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
 
 
-    iterative_entry = Entry('iterative_functions', 'entries/iterative_functions')
+    iterative_entry = Entry('iterative_functions', 'entries/iterative_functions', parameters_location=('parameters.json',["alternative", "place", 1]))
     recursive_entry = Entry('recursive_functions', 'entries/recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):

@@ -78,11 +78,18 @@ def free_access(module_object, function_name, given_arg_dict):
         return ret_values
 
 
-def quietly_load_json_config( filepath ):
+def quietly_load_json_config( filepath, structpath=[] ):
 
     if os.path.isfile( filepath ):
         with open( filepath ) as fd:
-            return json.load(fd)
+            struct_ptr = json.load(fd)
+            for syll in structpath:
+                if type(struct_ptr)==dict:
+                    struct_ptr = struct_ptr.get(syll, {})
+                else:
+                    struct_ptr = struct_ptr[syll]
+
+            return struct_ptr
     else:
         return {}
 
