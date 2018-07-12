@@ -4,11 +4,11 @@ import os
 import utils
 
 class Entry:
-    def __init__(self, entry_name, entry_path):
+    def __init__(self, entry_name, entry_path, parameters_location='parameters.json', meta_location='meta.json'):
         self.entry_name = entry_name
         self.entry_path = entry_path
-        self.load_own_meta()            # FIXME: switch to lazy-loading for efficiency
-        self.load_own_parameters()      # FIXME: switch to lazy-loading for efficiency
+        self.load_own_parameters(parameters_location)   # FIXME: switch to lazy-loading for efficiency
+        self.load_own_meta(meta_location)               # FIXME: switch to lazy-loading for efficiency
 
 
     def get_name(self):
@@ -22,12 +22,12 @@ class Entry:
             return self.entry_path
 
 
-    def load_own_parameters(self):
-        self.parameters = utils.quietly_load_json_config( self.get_path('parameters.json') )
+    def load_own_parameters(self, location):
+        self.parameters = utils.quietly_load_json_config( self.get_path(location) )
 
 
-    def load_own_meta(self):
-        self.meta = utils.quietly_load_json_config( self.get_path('meta.json') )
+    def load_own_meta(self, location):
+        self.meta = utils.quietly_load_json_config( self.get_path(location) )
 
 
     def get_param(self, param_name):
