@@ -46,7 +46,10 @@ def free_access(module_object, function_name, given_arg_dict):
         The function can be declared as having named args, defaults and optionally **kwargs.
     """
 
-    function_object     = getattr(module_object, function_name)
+    try:
+        function_object = getattr(module_object, function_name)
+    except AttributeError:
+        raise NameError( "name '{}' is not defined in Python module '{}'".format(function_name, module_object.__name__) )
 
     if sys.version_info[0] < 3:
         supported_arg_names, varargs, varkw, defaults = inspect.getargspec(function_object)

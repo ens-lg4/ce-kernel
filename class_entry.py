@@ -101,3 +101,8 @@ if __name__ == '__main__':
     params_entry    = Entry('params_entry', 'entries/params_entry')
     params_dict     = params_entry.call('show', {'alpha' : 'Hello', 'gamma' : 'World', 'delta' : 420} )
     print(" 'show' method when called via API returned : {}\n".format(params_dict))
+
+    try:
+        params_entry.call('nonexistent_func', { 'alpha' : 123 })
+    except NameError as e:
+        print(str(e) + "\n")
