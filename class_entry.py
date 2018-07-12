@@ -59,7 +59,7 @@ class Entry:
         module_object   = utils.get_cached_module(self.entry_name, self.entry_path)
         merged_params   = self.overlay_params( given_arg_dict )
 
-        return utils.access(module_object, function_name, merged_params)
+        return utils.free_access(module_object, function_name, merged_params)
 
 
 if __name__ == '__main__':
