@@ -3,11 +3,17 @@
 import os
 import utils
 
+
+def default_pathfinder(entry_name):
+    return os.path.join('entries', entry_name)
+
+
 class Entry:
-    def __init__(self, entry_path, entry_name=None, parent_entry=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
-        self.entry_path     = entry_path
-        self.entry_name     = entry_name or os.path.basename(self.entry_path)
-        self.parent_entry   = parent_entry
+    def __init__(self, entry_name, entry_path=None, pathfinder_func=default_pathfinder, parent_entry=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
+        self.entry_name         = entry_name
+        self.entry_path         = entry_path or pathfinder_func(entry_name)
+        self.pathfinder_func    = pathfinder_func
+        self.parent_entry       = parent_entry
 
         ## Placeholders for lazy loading:
         #
@@ -85,7 +91,7 @@ class Entry:
 
 if __name__ == '__main__':
 
-    foo_entry = Entry('entries/foo_entry')
+    foo_entry = Entry('foo_entry')
 
     p, q = foo_entry.call('foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_foo = {}, Q_foo = {}\n".format(p,q))
@@ -101,14 +107,14 @@ if __name__ == '__main__':
     print("dir_path = {}, file_path = {}\n".format(dir_path, file_path))
     print("State of weather : {}\n".format(foo_entry.get_metas().get('weather')))
 
-    bar_entry = Entry('entries/bar_entry')
+    bar_entry = Entry('bar_entry')
 
     p, q = bar_entry.call('bar', { 'alpha' : 100, 'beta' : 200, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
 
 
-    iterative_entry = Entry('entries/iterative_functions', parameters_location=('parameters.json',["alternative", "place", 1]))
-    recursive_entry = Entry('entries/recursive_functions')
+    iterative_entry = Entry('iterative_functions', parameters_location=('parameters.json',["alternative", "place", 1]))
+    recursive_entry = Entry('recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):
         entry_name  = funcs_entry.get_name()
@@ -116,7 +122,7 @@ if __name__ == '__main__':
         fact_n      = funcs_entry.call('factorial', {} )
         print("{} : fib(n) = {}, fact(n) = {}\n".format(entry_name, fib_n, fact_n))
 
-    params_entry    = Entry('entries/params_entry')
+    params_entry    = Entry('params_entry')
     params_dict     = params_entry.call('show', {'alpha' : 'Hello', 'gamma' : 'World', 'delta' : 420} )
     print(" 'show' method when called via API returned : {}\n".format(params_dict))
 
@@ -127,12 +133,12 @@ if __name__ == '__main__':
 
     ## direct inheritance from param_entry:
     #
-    latin = Entry('entries/latin_words', parent_entry=params_entry)
+    latin = Entry('latin_words', parent_entry=params_entry)
     print(latin.get_parameters())
 
     ## direct inheritance from latin (and so indirect from param_entry):
     #
-    english = Entry('entries/english_words', parent_entry=latin)
+    english = Entry('english_words', parent_entry=latin)
     print(english.get_parameters())
 
     latin.call('latin_only', { 'alpha' : 'Hello' })
