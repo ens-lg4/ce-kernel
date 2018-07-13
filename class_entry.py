@@ -2,27 +2,31 @@
 
 import os
 import utils
+from collections import namedtuple
+
+
+CollectionProperties = namedtuple('CollectionProperties', ['pathfinder_func', 'parameters_location', 'meta_location'])
 
 
 def default_pathfinder(entry_name):
     return os.path.join('entries', entry_name)
 
 
+default_collection_properties = CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]))
+
+
 class Entry:
-    def __init__(self, entry_name, pathfinder_func=default_pathfinder, entry_path=None, parent_entry=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
-        self.entry_name             = entry_name
-        self.pathfinder_func        = pathfinder_func
-        self.entry_path             = entry_path or pathfinder_func(entry_name)
-        self.parent_entry           = parent_entry
-        self.parameters_location    = parameters_location
-        self.meta_location          = meta_location
+    def __init__(self, entry_name, entry_path=None, parent_entry=None, properties=default_collection_properties):
+        self.entry_name     = entry_name
+        self.entry_path     = entry_path or properties.pathfinder_func(entry_name)
+        self.parent_entry   = parent_entry
+        self.properties     = properties
 
         ## Placeholders for lazy loading:
         #
         self.module_object  = None
         self.meta           = None
         self.parameters     = None
-
 
     def get_name(self):
         return self.entry_name
@@ -43,7 +47,7 @@ class Entry:
 
     def get_metas(self):
         if not self.meta:
-            meta_rel_path, meta_struct_path = self.meta_location
+            meta_rel_path, meta_struct_path = self.properties.meta_location
             self.meta = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
 
         return self.meta
@@ -51,7 +55,7 @@ class Entry:
 
     def get_parameters(self):
         if not self.parameters:
-            parameters_rel_path, parameters_struct_path = self.parameters_location
+            parameters_rel_path, parameters_struct_path = self.properties.parameters_location
             own_parameters = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
 
             if self.parent_entry:
@@ -115,7 +119,9 @@ if __name__ == '__main__':
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
 
 
-    iterative_entry = Entry('iterative_functions', parameters_location=('parameters.json',["alternative", "place", 1]))
+    iter_entry_properties=CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',["alternative", "place", 1]), meta_location=('meta.json',[]) )
+
+    iterative_entry = Entry('iterative_functions', properties=iter_entry_properties)
     recursive_entry = Entry('recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):
