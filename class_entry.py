@@ -28,6 +28,7 @@ class Entry:
         self.meta           = None
         self.parameters     = None
 
+
     def get_name(self):
         return self.entry_name
 
@@ -45,6 +46,15 @@ class Entry:
         return self.module_object
 
 
+    def parent_loaded(self):
+        if not self.parent_entry:
+            parent_entry_name = self.get_metas().get('parent_entry_name', None)
+            if parent_entry_name:
+                self.parent_entry = Entry(parent_entry_name, properties=self.properties)
+
+        return self.parent_entry
+
+
     def get_metas(self):
         if not self.meta:
             meta_rel_path, meta_struct_path = self.properties.meta_location
@@ -58,7 +68,7 @@ class Entry:
             parameters_rel_path, parameters_struct_path = self.properties.parameters_location
             own_parameters = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
 
-            if self.parent_entry:
+            if self.parent_loaded():
                 self.parameters = utils.merged_dictionaries(self.parent_entry.get_parameters(), own_parameters)
             else:
                 self.parameters = own_parameters
@@ -89,7 +99,7 @@ class Entry:
         try:
             return utils.free_access(module_object, function_name, merged_params)
         except NameError as e:
-            if self.parent_entry:
+            if self.parent_loaded():
                 self.parent_entry.call(function_name, main_params=merged_params)
             else:
                 raise e
@@ -139,9 +149,9 @@ if __name__ == '__main__':
     except NameError as e:
         print(str(e) + "\n")
 
-    ## direct inheritance from param_entry:
+    ## direct inheritance from param_entry (via meta.parent_entry_name):
     #
-    latin = Entry('latin_words', parent_entry=params_entry)
+    latin = Entry('latin_words')
     print(latin.get_parameters())
 
     ## direct inheritance from latin (and so indirect from param_entry):
