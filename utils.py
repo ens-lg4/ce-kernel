@@ -13,6 +13,15 @@ import inspect      # to obtain a random function's signature
 import builtins     # to test hex() function
 
 
+def merged_dictionaries(under_dict, over_dict):
+    """Just merge without spoiling the original.
+
+    """
+    merged_dict = under_dict.copy()
+    merged_dict.update( over_dict )
+    return merged_dict
+
+
 def get_entrys_python_module(module_path, module_name='python_code'):
     """ Find and load a python module given the path and filename.
 
@@ -87,6 +96,13 @@ def baz(alpha, beta=22, gamma=333):
 
 
 if __name__ == '__main__':
+
+    under   = { 'alpha' : 10,   'beta' : 20              }
+    over    = { 'alpha' : 100,              'gamma': 300 }
+    merged  = merged_dictionaries(under, over)
+    print("UNDER: {}".format(under))
+    print("OVER: {}".format(over))
+    print("MERGED: {}\n".format(merged))
 
     this_module = sys.modules[__name__]
     foo_module  = get_entrys_python_module('entries/foo_entry')
