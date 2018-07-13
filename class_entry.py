@@ -9,20 +9,19 @@ def default_pathfinder(entry_name):
 
 
 class Entry:
-    def __init__(self, entry_name, entry_path=None, pathfinder_func=default_pathfinder, parent_entry=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
-        self.entry_name         = entry_name
-        self.entry_path         = entry_path or pathfinder_func(entry_name)
-        self.pathfinder_func    = pathfinder_func
-        self.parent_entry       = parent_entry
+    def __init__(self, entry_name, pathfinder_func=default_pathfinder, entry_path=None, parent_entry=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
+        self.entry_name             = entry_name
+        self.pathfinder_func        = pathfinder_func
+        self.entry_path             = entry_path or pathfinder_func(entry_name)
+        self.parent_entry           = parent_entry
+        self.parameters_location    = parameters_location
+        self.meta_location          = meta_location
 
         ## Placeholders for lazy loading:
         #
         self.module_object  = None
         self.meta           = None
         self.parameters     = None
-
-        self.parameters_rel_path, self.parameters_struct_path   = parameters_location
-        self.meta_rel_path, self.meta_struct_path               = meta_location
 
 
     def get_name(self):
@@ -43,14 +42,17 @@ class Entry:
 
 
     def get_metas(self):
-        self.meta = self.meta or utils.quietly_load_json_config( self.get_path(self.meta_rel_path), self.meta_struct_path )
+        if not self.meta:
+            meta_rel_path, meta_struct_path = self.meta_location
+            self.meta = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
 
         return self.meta
 
 
     def get_parameters(self):
         if not self.parameters:
-            own_parameters = utils.quietly_load_json_config( self.get_path(self.parameters_rel_path), self.parameters_struct_path )
+            parameters_rel_path, parameters_struct_path = self.parameters_location
+            own_parameters = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
 
             if self.parent_entry:
                 self.parameters = utils.merged_dictionaries(self.parent_entry.get_parameters(), own_parameters)
