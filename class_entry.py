@@ -4,9 +4,10 @@ import os
 import utils
 
 class Entry:
-    def __init__(self, entry_path, entry_name=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
+    def __init__(self, entry_path, entry_name=None, parent_entry=None, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]) ):
         self.entry_path     = entry_path
         self.entry_name     = entry_name or os.path.basename(self.entry_path)
+        self.parent_entry   = parent_entry
 
         ## Placeholders for lazy loading:
         #
@@ -42,7 +43,13 @@ class Entry:
 
 
     def get_parameters(self):
-        self.parameters = self.parameters or utils.quietly_load_json_config( self.get_path(self.parameters_rel_path), self.parameters_struct_path )
+        if not self.parameters:
+            own_parameters = utils.quietly_load_json_config( self.get_path(self.parameters_rel_path), self.parameters_struct_path )
+
+            if self.parent_entry:
+                self.parameters = utils.merged_dictionaries(self.parent_entry.get_parameters(), own_parameters)
+            else:
+                self.parameters = own_parameters
 
         return self.parameters
 
@@ -57,26 +64,23 @@ class Entry:
         self.get_parameters()[param_name] = param_value
 
 
-    def overlay_params(self, overlaying_dict):
-
-        underlying_dict = self.get_parameters()
-
-        if len(overlaying_dict):
-            return { k : overlaying_dict.get(k, underlying_dict.get(k) ) for k in set(overlaying_dict) | set(underlying_dict) }
-        else:
-            return underlying_dict
-
-
-    def call(self, function_name, given_arg_dict):
+    def call(self, function_name, override_params=None, main_params=None):
         """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
             The function can be declared as having positional args, named args with defaults and possibly also **kwargs.
         """
 
         module_object   = self.get_module_object()
-        merged_params   = self.overlay_params( given_arg_dict )
+        main_params     = main_params or self.get_parameters()
+        merged_params   = utils.merged_dictionaries(main_params, override_params) if override_params else main_params
 
-        return utils.free_access(module_object, function_name, merged_params)
+        try:
+            return utils.free_access(module_object, function_name, merged_params)
+        except NameError as e:
+            if self.parent_entry:
+                self.parent_entry.call(function_name, main_params=merged_params)
+            else:
+                raise e
 
 
 if __name__ == '__main__':
@@ -118,5 +122,32 @@ if __name__ == '__main__':
 
     try:
         params_entry.call('nonexistent_func', { 'alpha' : 123 })
+    except NameError as e:
+        print(str(e) + "\n")
+
+    ## direct inheritance from param_entry:
+    #
+    latin = Entry('entries/latin_words', parent_entry=params_entry)
+    print(latin.get_parameters())
+
+    ## direct inheritance from latin (and so indirect from param_entry):
+    #
+    english = Entry('entries/english_words', parent_entry=latin)
+    print(english.get_parameters())
+
+    latin.call('latin_only', { 'alpha' : 'Hello' })
+    print("")
+    latin.call('both', { 'alpha' : 'Hello' })
+    print("")
+    english.call('latin_only', { 'alpha' : 'Hello' })
+    print("")
+    english.call('english_only', { 'alpha' : 'Hello' })
+    print("")
+    english.call('both', { 'alpha' : 'Hello' })
+    print("")
+    english.call('show', { 'alpha' : 'Hello' })
+    print("")
+    try:
+        english.call('neither', { 'nu' : 789, 'omega' : 890 })
     except NameError as e:
         print(str(e) + "\n")
