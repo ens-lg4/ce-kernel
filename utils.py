@@ -22,11 +22,11 @@ def merged_dictionaries(under_dict, over_dict):
     return merged_dict
 
 
-def get_entrys_python_module(module_path, module_name='python_code'):
+def get_entrys_python_module(module_path, code_container_name='python_code'):
     """ Find and load a python module given the path and filename.
 
     """
-    (open_file_descriptor, path_to_module, module_description) = imp.find_module(module_name, [module_path])
+    (open_file_descriptor, path_to_module, module_description) = imp.find_module(code_container_name, [module_path])
 
     module_object = imp.load_module(path_to_module, open_file_descriptor, path_to_module, module_description)
 

@@ -5,14 +5,14 @@ import utils
 from collections import namedtuple
 
 
-CollectionProperties = namedtuple('CollectionProperties', ['pathfinder_func', 'parameters_location', 'meta_location'])
+CollectionProperties = namedtuple('CollectionProperties', ['pathfinder_func', 'parameters_location', 'meta_location', 'code_container_name'])
 
 
 def default_pathfinder(entry_name):
     return os.path.join('entries', entry_name)
 
 
-default_collection_properties = CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]))
+default_collection_properties = CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code')
 
 
 class Entry:
@@ -41,7 +41,7 @@ class Entry:
 
 
     def get_module_object(self):
-        self.module_object = self.module_object or utils.get_entrys_python_module(self.entry_path)
+        self.module_object = self.module_object or utils.get_entrys_python_module(self.entry_path, code_container_name=self.properties.code_container_name)
 
         return self.module_object
 
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
 
 
-    iter_entry_properties=CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',["alternative", "place", 1]), meta_location=('meta.json',[]) )
+    iter_entry_properties=CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',["alternative", "place", 1]), meta_location=('meta.json',[]), code_container_name='python_code')
 
     iterative_entry = Entry('iterative_functions', properties=iter_entry_properties)
     recursive_entry = Entry('recursive_functions')
