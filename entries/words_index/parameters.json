@@ -1,0 +1,6 @@
+{
+    "name_2_path" : {
+        "english_words" :   "../english_words",
+        "latin_words" :     "../latin_words"
+    }
+}

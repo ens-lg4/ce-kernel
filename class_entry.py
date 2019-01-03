@@ -175,3 +175,9 @@ if __name__ == '__main__':
         english.call('neither', { 'nu' : 789, 'omega' : 890 })
     except NameError as e:
         print(str(e) + "\n")
+
+    ## testing "external" index
+    #
+    words_index = Entry('words_index')
+    words_index.call('find_one', { 'name' : 'english_words' })
+    words_index.call('find_one', { 'name' : 'gaelic_words' })
