@@ -181,3 +181,11 @@ if __name__ == '__main__':
     words_index = Entry('words_index')
     words_index.call('find_one', { 'name' : 'english_words' })
     words_index.call('find_one', { 'name' : 'gaelic_words' })
+    print("")
+
+    ## testing a proper collection with "internal" index
+    #
+    words_collection = Entry('words_collection')
+    english_dict_path = words_collection.get_path() + '/' + words_collection.call('find_one', { 'name' : 'english' })
+    english_dict = Entry('english_dictionary', entry_path=english_dict_path)
+    english_dict.call('show', { 'aleph' : 'Shalom' })
