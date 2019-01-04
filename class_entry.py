@@ -96,17 +96,17 @@ class Entry:
             The function can be declared as having positional args, named args with defaults and possibly also **kwargs.
         """
 
-        module_object   = self.get_module_object()
         main_params     = main_params or self.get_parameters()
         merged_params   = utils.merged_dictionaries(main_params, override_params) if override_params else main_params
 
         try:
+            module_object   = self.get_module_object()
             return utils.free_access(module_object, function_name, merged_params)
-        except NameError as e:
+        except (ImportError, NameError) as e:   # if we don't have own code at all, or just no own function_name defined, ask the parent
             if self.parent_loaded():
                 return self.parent_entry.call(function_name, main_params=merged_params)
             else:
-                raise e
+                raise e                         # perhaps, better error reporting is needed ("no such method along the inheritance path")
 
 
 if __name__ == '__main__':
