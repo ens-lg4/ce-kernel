@@ -85,9 +85,9 @@ def quietly_load_json_config( filepath, structpath=[] ):
                 else:
                     struct_ptr = struct_ptr[syll]
 
-            return struct_ptr
+            return struct_ptr, True
     else:
-        return {}
+        return {}, False
 
 
 def baz(alpha, beta=22, gamma=333):

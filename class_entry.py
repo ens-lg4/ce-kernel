@@ -27,6 +27,7 @@ class Entry:
         #
         self.module_object  = None
         self.meta           = None
+        self.has_meta       = None
         self.parameters     = None
 
 
@@ -59,7 +60,7 @@ class Entry:
     def get_metas(self):
         if not self.meta:
             meta_rel_path, meta_struct_path = self.properties.meta_location
-            self.meta = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
+            self.meta, self.has_meta = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
 
         return self.meta
 
@@ -67,7 +68,7 @@ class Entry:
     def get_parameters(self):
         if not self.parameters:
             parameters_rel_path, parameters_struct_path = self.properties.parameters_location
-            own_parameters = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
+            own_parameters, has_parameters = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
 
             if self.parent_loaded():
                 self.parameters = utils.merged_dictionaries(self.parent_entry.get_parameters(), own_parameters)
