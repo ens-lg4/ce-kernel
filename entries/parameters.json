@@ -1,0 +1,13 @@
+{
+    "name_2_path" : {
+        "entries"               : ".",
+        "base_collection"       : "base_collection",
+        "english_words"         : "english_words",
+        "latin_words"           : "latin_words",
+        "params_entry"          : "params_entry",
+        "iterative_functions"   : "iterative_functions",
+        "recursive_functions"   : "recursive_functions",
+        "words_collection"      : "words_collection",
+        "words_index"           : "words_index"
+    }
+}

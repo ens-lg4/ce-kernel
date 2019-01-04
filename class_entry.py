@@ -18,6 +18,29 @@ def default_pathfinder(entry_name):
 default_collection_properties = CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code')
 
 
+
+def smart_pathfinder(entry_name):
+    core_collection_path    = os.path.join(core_repository_path, 'entries')
+    user_collection_path    = os.path.join(core_repository_path, 'entries', 'words_collection')
+    collection_search_order = [ core_collection_path, user_collection_path ]
+
+    for collection_path in collection_search_order:
+        collection_obj = Entry(os.path.basename(collection_path), entry_path=collection_path)
+        collection_obj.get_metas()
+        if collection_obj.has_meta:         # FIXME: better check if the entry ->CAN('find_one')
+            local_path = collection_obj.call('find_one', { 'name' : entry_name} )
+            if local_path:
+                full_path = os.path.join(collection_obj.get_path(), local_path)
+                print("found {} in {} : {}".format(entry_name, collection_path, full_path))
+                return full_path
+            else:
+                print("not found {} in {}".format(entry_name, collection_path))
+        else:
+            print("{} doesn't contain meta".format(collection_path))
+
+    return None
+
+
 class Entry:
     def __init__(self, entry_name, entry_path=None, parent_entry=None, properties=default_collection_properties):
         self.entry_name     = entry_name
@@ -180,16 +203,16 @@ if __name__ == '__main__':
     except NameError as e:
         print(str(e) + "\n")
 
-    ## testing "external" index
-    #
-    words_index = Entry('words_index')
-    words_index.call('find_one', { 'name' : 'english_words' })
-    words_index.call('find_one', { 'name' : 'gaelic_words' })
-    print("")
-
     ## testing a proper collection with "internal" index
     #
     words_collection = Entry('words_collection')
-    english_dict_path = words_collection.get_path() + '/' + words_collection.call('find_one', { 'name' : 'english' })
+    words_collection.call('find_one', { 'name' : 'gaelic' })
+    english_dict_path = os.path.join( words_collection.get_path(), words_collection.call('find_one', { 'name' : 'english' }) )
     english_dict = Entry('english_dictionary', entry_path=english_dict_path)
     english_dict.call('show', { 'aleph' : 'Shalom' })
+    print("")
+
+    rec_fun_path = smart_pathfinder('recursive_functions')
+    print("rec_fun_path = {}\n".format(rec_fun_path))
+    latin_path = smart_pathfinder('latin')
+    print("latin_path {}\n".format(latin_path))
