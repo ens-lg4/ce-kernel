@@ -9,7 +9,8 @@ CollectionProperties = namedtuple('CollectionProperties', ['pathfinder_func', 'p
 
 
 def default_pathfinder(entry_name):
-    return os.path.join('entries', entry_name)
+    this_script_dir = os.path.dirname( os.path.realpath(__file__) )
+    return os.path.join(this_script_dir, 'entries', entry_name)
 
 
 default_collection_properties = CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code')
