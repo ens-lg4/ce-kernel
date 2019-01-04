@@ -101,7 +101,7 @@ class Entry:
             return utils.free_access(module_object, function_name, merged_params)
         except NameError as e:
             if self.parent_loaded():
-                self.parent_entry.call(function_name, main_params=merged_params)
+                return self.parent_entry.call(function_name, main_params=merged_params)
             else:
                 raise e
 
