@@ -5,12 +5,14 @@ import utils
 from collections import namedtuple
 
 
+core_repository_path = os.path.dirname( os.path.realpath(__file__) )    # depends on relative position of THIS FILE in the repository
+
+
 CollectionProperties = namedtuple('CollectionProperties', ['pathfinder_func', 'parameters_location', 'meta_location', 'code_container_name'])
 
 
 def default_pathfinder(entry_name):
-    this_script_dir = os.path.dirname( os.path.realpath(__file__) )
-    return os.path.join(this_script_dir, 'entries', entry_name)
+    return os.path.join(core_repository_path, 'entries', entry_name)
 
 
 default_collection_properties = CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code')
