@@ -40,13 +40,12 @@ class MicroKernel:
         self.meta_location          = meta_location
         self.code_container_name    = code_container_name
 
+    def find_Entry(self, entry_name):
+        return Entry(entry_name, kernel=self)
+
 
 default_kernel_instance = MicroKernel()
 smart_kernel_instance   = MicroKernel(pathfinder_func=smart_pathfinder)
-
-
-def find_Entry(entry_name):
-    return Entry(entry_name, kernel=smart_kernel_instance)
 
 
 class Entry:
@@ -85,7 +84,7 @@ class Entry:
         if not self.parent_entry:
             parent_entry_name = self.get_metas().get('parent_entry_name', None)
             if parent_entry_name:
-                self.parent_entry = Entry(parent_entry_name, kernel=self.kernel)
+                self.parent_entry = self.kernel.find_Entry(parent_entry_name)
 
         return self.parent_entry
 
@@ -186,13 +185,13 @@ if __name__ == '__main__':
 
     ## direct inheritance from param_entry (via meta.parent_entry_name):
     #
-    latin = find_Entry('latin')
+    latin = smart_kernel_instance.find_Entry('latin')
     print(latin.get_parameters())
     print("")
 
     ## direct inheritance from latin (and so indirect from param_entry):
     #
-    english = find_Entry('english')
+    english = smart_kernel_instance.find_Entry('english')
     print(english.get_parameters())
     print("")
 
@@ -216,6 +215,6 @@ if __name__ == '__main__':
 
     ## what happens if the entry could not be found?
     #
-    gaelic_entry = find_Entry('gaelic')
+    gaelic_entry = smart_kernel_instance.find_Entry('gaelic')
     print(gaelic_entry)
     print("")
