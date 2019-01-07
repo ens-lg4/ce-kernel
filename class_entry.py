@@ -2,21 +2,13 @@
 
 import os
 import utils
-from collections import namedtuple
 
 
 core_repository_path = os.path.dirname( os.path.realpath(__file__) )    # depends on relative position of THIS FILE in the repository
 
 
-CollectionProperties = namedtuple('CollectionProperties', ['pathfinder_func', 'parameters_location', 'meta_location', 'code_container_name'])
-
-
 def default_pathfinder(entry_name):
     return os.path.join(core_repository_path, 'core_collection', entry_name)
-
-
-default_collection_properties = CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code')
-
 
 
 def smart_pathfinder(entry_name):
@@ -41,20 +33,28 @@ def smart_pathfinder(entry_name):
     return None
 
 
+class MicroKernel:
+    def __init__(self, pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code'):
+        self.pathfinder_func        = pathfinder_func
+        self.parameters_location    = parameters_location
+        self.meta_location          = meta_location
+        self.code_container_name    = code_container_name
+
+
+default_kernel_instance = MicroKernel()
+smart_kernel_instance   = MicroKernel(pathfinder_func=smart_pathfinder)
+
+
 def find_Entry(entry_name):
-    smart_entry_properties=CollectionProperties(pathfinder_func=smart_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code')
-
-    entry_object = Entry(entry_name, properties=smart_entry_properties)
-
-    return entry_object
+    return Entry(entry_name, kernel=smart_kernel_instance)
 
 
 class Entry:
-    def __init__(self, entry_name, entry_path=None, parent_entry=None, properties=default_collection_properties):
+    def __init__(self, entry_name, entry_path=None, parent_entry=None, kernel=default_kernel_instance):
         self.entry_name     = entry_name
-        self.entry_path     = entry_path or properties.pathfinder_func(entry_name)
+        self.entry_path     = entry_path or kernel.pathfinder_func(entry_name)
         self.parent_entry   = parent_entry
-        self.properties     = properties
+        self.kernel         = kernel
 
         ## Placeholders for lazy loading:
         #
@@ -76,7 +76,7 @@ class Entry:
 
 
     def get_module_object(self):
-        self.module_object = self.module_object or utils.get_entrys_python_module(self.entry_path, code_container_name=self.properties.code_container_name)
+        self.module_object = self.module_object or utils.get_entrys_python_module(self.entry_path, code_container_name=self.kernel.code_container_name)
 
         return self.module_object
 
@@ -85,14 +85,14 @@ class Entry:
         if not self.parent_entry:
             parent_entry_name = self.get_metas().get('parent_entry_name', None)
             if parent_entry_name:
-                self.parent_entry = Entry(parent_entry_name, properties=self.properties)
+                self.parent_entry = Entry(parent_entry_name, kernel=self.kernel)
 
         return self.parent_entry
 
 
     def get_metas(self):
         if not self.meta:
-            meta_rel_path, meta_struct_path = self.properties.meta_location
+            meta_rel_path, meta_struct_path = self.kernel.meta_location
             self.meta, self.has_meta = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
 
         return self.meta
@@ -100,7 +100,7 @@ class Entry:
 
     def get_parameters(self):
         if not self.parameters:
-            parameters_rel_path, parameters_struct_path = self.properties.parameters_location
+            parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
             own_parameters, has_parameters = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
 
             if self.parent_loaded():
@@ -164,9 +164,9 @@ if __name__ == '__main__':
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
 
 
-    iter_entry_properties=CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',["alternative", "place", 1]), meta_location=('meta.json',[]), code_container_name='python_code')
+    iter_entry_kernel_instance = MicroKernel( parameters_location=('parameters.json',["alternative", "place", 1]) )
 
-    iterative_entry = Entry('iterative_functions', properties=iter_entry_properties)
+    iterative_entry = Entry('iterative_functions', kernel=iter_entry_kernel_instance)
     recursive_entry = Entry('recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):
