@@ -41,6 +41,14 @@ def smart_pathfinder(entry_name):
     return None
 
 
+def find_Entry(entry_name):
+    smart_entry_properties=CollectionProperties(pathfinder_func=smart_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code')
+
+    entry_object = Entry(entry_name, properties=smart_entry_properties)
+
+    return entry_object
+
+
 class Entry:
     def __init__(self, entry_name, entry_path=None, parent_entry=None, properties=default_collection_properties):
         self.entry_name     = entry_name
@@ -178,13 +186,15 @@ if __name__ == '__main__':
 
     ## direct inheritance from param_entry (via meta.parent_entry_name):
     #
-    latin = Entry('latin_words')
+    latin = find_Entry('latin')
     print(latin.get_parameters())
+    print("")
 
     ## direct inheritance from latin (and so indirect from param_entry):
     #
-    english = Entry('english_words', parent_entry=latin)
+    english = find_Entry('english')
     print(english.get_parameters())
+    print("")
 
     latin.call('latin_only', { 'alpha' : 'Hello' })
     print("")
@@ -203,16 +213,9 @@ if __name__ == '__main__':
     except NameError as e:
         print(str(e) + "\n")
 
-    ## testing a proper collection with "internal" index
-    #
-    words_collection = Entry('words_collection')
-    words_collection.call('find_one', { 'name' : 'gaelic' })
-    english_dict_path = os.path.join( words_collection.get_path(), words_collection.call('find_one', { 'name' : 'english' }) )
-    english_dict = Entry('english_dictionary', entry_path=english_dict_path)
-    english_dict.call('show', { 'aleph' : 'Shalom' })
-    print("")
 
-    rec_fun_path = smart_pathfinder('recursive_functions')
-    print("rec_fun_path = {}\n".format(rec_fun_path))
-    latin_path = smart_pathfinder('latin')
-    print("latin_path {}\n".format(latin_path))
+    ## what happens if the entry could not be found?
+    #
+    gaelic_entry = find_Entry('gaelic')
+    print(gaelic_entry)
+    print("")
