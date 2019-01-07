@@ -5,7 +5,7 @@ import utils
 
 
 core_repository_path = os.path.dirname( os.path.realpath(__file__) )    # depends on relative position of THIS FILE in the repository
-
+core_collection_path = os.path.join(core_repository_path, 'core_collection')
 
 def default_pathfinder(entry_name):
     return os.path.join(core_repository_path, 'core_collection', entry_name)
@@ -17,7 +17,7 @@ def smart_pathfinder(entry_name):
     collection_search_order = [ core_collection_path, user_collection_path ]
 
     for collection_path in collection_search_order:
-        collection_obj = Entry(os.path.basename(collection_path), entry_path=collection_path)
+        collection_obj = Entry(collection_path)
         collection_obj.get_metas()
         if collection_obj.has_meta:         # FIXME: better check if the entry ->CAN('find_one')
             local_path = collection_obj.call('find_one', { 'name' : entry_name} )
@@ -41,7 +41,11 @@ class MicroKernel:
         self.code_container_name    = code_container_name
 
     def find_Entry(self, entry_name):
-        return Entry(entry_name, kernel=self)
+        entry_path = self.pathfinder_func( entry_name )
+        if entry_path:
+            return Entry(entry_path, entry_name=entry_name, kernel=self)
+        else:
+            return None
 
 
 default_kernel_instance = MicroKernel()
@@ -49,9 +53,9 @@ smart_kernel_instance   = MicroKernel(pathfinder_func=smart_pathfinder)
 
 
 class Entry:
-    def __init__(self, entry_name, entry_path=None, parent_entry=None, kernel=default_kernel_instance):
-        self.entry_name     = entry_name
-        self.entry_path     = entry_path or kernel.pathfinder_func(entry_name)
+    def __init__(self, entry_path, entry_name=None, parent_entry=None, kernel=default_kernel_instance):
+        self.entry_path     = entry_path
+        self.entry_name     = entry_name or os.path.basename(self.entry_path)
         self.parent_entry   = parent_entry
         self.kernel         = kernel
 
@@ -63,15 +67,18 @@ class Entry:
         self.parameters     = None
 
 
-    def get_name(self):
-        return self.entry_name
-
-
     def get_path(self, filename=None):
         if filename:
             return os.path.join(self.entry_path, filename)
         else:
             return self.entry_path
+
+
+    def get_name(self):
+        if not self.entry_name:
+            self.entry_name = os.path.basename(self.entry_path)
+
+        return self.entry_name
 
 
     def get_module_object(self):
@@ -141,7 +148,8 @@ class Entry:
 
 if __name__ == '__main__':
 
-    foo_entry = Entry('foo_entry')
+    print(core_repository_path)
+    foo_entry = Entry(core_collection_path + '/foo_entry')
 
     p, q = foo_entry.call('foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_foo = {}, Q_foo = {}\n".format(p,q))
@@ -157,7 +165,7 @@ if __name__ == '__main__':
     print("dir_path = {}, file_path = {}\n".format(dir_path, file_path))
     print("State of weather : {}\n".format(foo_entry.get_metas().get('weather')))
 
-    bar_entry = Entry('bar_entry')
+    bar_entry = Entry(core_collection_path + '/bar_entry')
 
     p, q = bar_entry.call('bar', { 'alpha' : 100, 'beta' : 200, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
@@ -165,8 +173,8 @@ if __name__ == '__main__':
 
     iter_entry_kernel_instance = MicroKernel( parameters_location=('parameters.json',["alternative", "place", 1]) )
 
-    iterative_entry = Entry('iterative_functions', kernel=iter_entry_kernel_instance)
-    recursive_entry = Entry('recursive_functions')
+    iterative_entry = iter_entry_kernel_instance.find_Entry('iterative_functions')
+    recursive_entry = smart_kernel_instance.find_Entry('recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):
         entry_name  = funcs_entry.get_name()
@@ -174,7 +182,7 @@ if __name__ == '__main__':
         fact_n      = funcs_entry.call('factorial', {} )
         print("{} : fib(n) = {}, fact(n) = {}\n".format(entry_name, fib_n, fact_n))
 
-    params_entry    = Entry('params_entry')
+    params_entry    = smart_kernel_instance.find_Entry('params_entry')
     params_dict     = params_entry.call('show', {'alpha' : 'Hello', 'gamma' : 'World', 'delta' : 420} )
     print(" 'show' method when called via API returned : {}\n".format(params_dict))
 
