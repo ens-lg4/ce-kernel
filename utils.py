@@ -105,8 +105,8 @@ if __name__ == '__main__':
     print("MERGED: {}\n".format(merged))
 
     this_module = sys.modules[__name__]
-    foo_module  = get_entrys_python_module('entries/foo_entry')
-    bar_module  = get_entrys_python_module('entries/bar_entry')
+    foo_module  = get_entrys_python_module('core_collection/foo_entry')
+    bar_module  = get_entrys_python_module('core_collection/bar_entry')
 
     # a direct call of a remote function:
     r = foo_module.foo(10, 20, 30, epsilon=70)

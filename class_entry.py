@@ -12,7 +12,7 @@ CollectionProperties = namedtuple('CollectionProperties', ['pathfinder_func', 'p
 
 
 def default_pathfinder(entry_name):
-    return os.path.join(core_repository_path, 'entries', entry_name)
+    return os.path.join(core_repository_path, 'core_collection', entry_name)
 
 
 default_collection_properties = CollectionProperties(pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code')
@@ -20,8 +20,8 @@ default_collection_properties = CollectionProperties(pathfinder_func=default_pat
 
 
 def smart_pathfinder(entry_name):
-    core_collection_path    = os.path.join(core_repository_path, 'entries')
-    user_collection_path    = os.path.join(core_repository_path, 'entries', 'words_collection')
+    core_collection_path    = os.path.join(core_repository_path, 'core_collection')
+    user_collection_path    = os.path.join(core_repository_path, 'core_collection', 'words_collection')
     collection_search_order = [ core_collection_path, user_collection_path ]
 
     for collection_path in collection_search_order:
