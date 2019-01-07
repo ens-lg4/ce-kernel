@@ -4,7 +4,6 @@
         "base_collection"       : "base_collection",
         "params_entry"          : "params_entry",
         "iterative_functions"   : "iterative_functions",
-        "recursive_functions"   : "recursive_functions",
-        "words_collection"      : "words_collection"
+        "recursive_functions"   : "recursive_functions"
     }
 }

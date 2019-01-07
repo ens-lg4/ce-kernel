@@ -21,7 +21,7 @@ default_collection_properties = CollectionProperties(pathfinder_func=default_pat
 
 def smart_pathfinder(entry_name):
     core_collection_path    = os.path.join(core_repository_path, 'core_collection')
-    user_collection_path    = os.path.join(core_repository_path, 'core_collection', 'words_collection')
+    user_collection_path    = os.path.join(core_repository_path, 'words_collection')
     collection_search_order = [ core_collection_path, user_collection_path ]
 
     for collection_path in collection_search_order:
