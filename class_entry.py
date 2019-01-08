@@ -5,66 +5,88 @@ import utils
 
 
 core_repository_path = os.path.dirname( os.path.realpath(__file__) )    # depends on relative position of THIS FILE in the repository
+base_collection_path = os.path.join(core_repository_path, 'core_collection', 'base_collection')
 core_collection_path = os.path.join(core_repository_path, 'core_collection')
-
-def default_pathfinder(entry_name):
-    return os.path.join(core_repository_path, 'core_collection', entry_name)
-
-
-def smart_pathfinder(entry_name):
-    core_collection_path    = os.path.join(core_repository_path, 'core_collection')
-    user_collection_path    = os.path.join(core_repository_path, 'words_collection')
-    collection_search_order = [ core_collection_path, user_collection_path ]
-
-    for collection_path in collection_search_order:
-        collection_obj = Entry(collection_path)
-        collection_obj.get_metas()
-        if collection_obj.has_meta:         # FIXME: better check if the entry ->CAN('find_one')
-            local_path = collection_obj.call('find_one', { 'name' : entry_name} )
-            if local_path:
-                full_path = os.path.join(collection_obj.get_path(), local_path)
-                print("found {} in {} : {}".format(entry_name, collection_path, full_path))
-                return full_path
-            else:
-                print("not found {} in {}".format(entry_name, collection_path))
-        else:
-            print("{} doesn't contain meta".format(collection_path))
-
-    return None
+user_collection_path = os.path.join(core_repository_path, 'words_collection')
 
 
 class MicroKernel:
-    def __init__(self, pathfinder_func=default_pathfinder, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code'):
-        self.pathfinder_func        = pathfinder_func
+    def __init__(self, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code'):
         self.parameters_location    = parameters_location
         self.meta_location          = meta_location
         self.code_container_name    = code_container_name
+        self.entry_cache            = {}
 
-    def find_Entry(self, entry_name):
-        entry_path = self.pathfinder_func( entry_name )
-        if entry_path:
-            return Entry(entry_path, entry_name=entry_name, kernel=self)
+        self.collection_search_order = [ base_collection_path, core_collection_path, user_collection_path ]
+
+    def get_cached(self, entry_name):
+        if entry_name in self.entry_cache:              # FIXME: make sure to spot-clear the cache as we add/remove/move entries on disk
+            print('CACHE ------> {}'.format(entry_name))
+            return self.entry_cache[entry_name]
         else:
             return None
 
 
+    def encache_entry(self, entry_name, entry_object):
+        print('CACHE <====== {}'.format(entry_name))
+        self.entry_cache[entry_name] = entry_object
+
+
+    def find_Entry(self, entry_name):
+        print("find_Entry({})".format(entry_name))
+
+        cached_entry = self.get_cached(entry_name)     # FIXME: make sure to spot-clear the cache as we add/remove/move entries on disk
+        if not cached_entry:
+
+            full_path = None
+            for collection_path in self.collection_search_order:
+
+                collection_obj = Entry(collection_path, kernel=self)
+
+                collection_obj.get_metas()
+                if collection_obj.has_meta:         # FIXME: better check if the entry ->CAN('find_one')
+                    local_path = collection_obj.call('find_one', { 'name' : entry_name} )
+                    if local_path:
+                        full_path = collection_obj.get_path(local_path)
+                        break
+                else:
+                    print("{} doesn't contain meta".format(collection_path))
+
+            if full_path:
+                cached_entry = Entry(full_path, kernel=self)
+        return cached_entry
+
+
 default_kernel_instance = MicroKernel()
-smart_kernel_instance   = MicroKernel(pathfinder_func=smart_pathfinder)
 
 
 class Entry:
-    def __init__(self, entry_path, entry_name=None, parent_entry=None, kernel=default_kernel_instance):
-        self.entry_path     = entry_path
-        self.entry_name     = entry_name or os.path.basename(self.entry_path)
-        self.parent_entry   = parent_entry
-        self.kernel         = kernel
+    def __new__(cls, entry_path, entry_name=None, parent_entry=None, kernel=default_kernel_instance):
 
-        ## Placeholders for lazy loading:
-        #
-        self.module_object  = None
-        self.meta           = None
-        self.has_meta       = None
-        self.parameters     = None
+        entry_name = entry_name or os.path.basename(entry_path)
+
+        cached_entry = kernel.get_cached(entry_name)
+        if cached_entry:
+            return cached_entry
+        else:
+            self = super(Entry, cls).__new__(cls)
+
+            print("__new__ Entry({})".format(entry_path))
+            self.entry_path     = entry_path
+            self.entry_name     = entry_name
+            self.parent_entry   = parent_entry
+            self.kernel         = kernel
+
+            ## Placeholders for lazy loading:
+            #
+            self.module_object  = None
+            self.meta           = None
+            self.has_meta       = None
+            self.parameters     = None
+
+            kernel.encache_entry( self.entry_name, self )
+
+            return self
 
 
     def get_path(self, filename=None):
@@ -88,16 +110,18 @@ class Entry:
 
 
     def parent_loaded(self):
-        if not self.parent_entry:
+        if self.parent_entry==None:     # lazy-loading condition
             parent_entry_name = self.get_metas().get('parent_entry_name', None)
             if parent_entry_name:
-                self.parent_entry = self.kernel.find_Entry(parent_entry_name)
+                self.parent_entry = self.kernel.find_Entry(parent_entry_name)   # in case we get a False, it should stick and not cause another find_Entry() in future
+            else:
+                self.parent_entry = False
 
         return self.parent_entry
 
 
     def get_metas(self):
-        if not self.meta:
+        if self.meta==None:             # lazy-loading condition
             meta_rel_path, meta_struct_path = self.kernel.meta_location
             self.meta, self.has_meta = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
 
@@ -105,7 +129,7 @@ class Entry:
 
 
     def get_parameters(self):
-        if not self.parameters:
+        if self.parameters==None:       # lazy-loading condition
             parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
             own_parameters, has_parameters = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
 
@@ -118,12 +142,10 @@ class Entry:
 
 
     def get_param(self, param_name):
-
         return self.get_parameters().get(param_name, None)
 
 
     def set_param(self, param_name, param_value):
-
         self.get_parameters()[param_name] = param_value
 
 
@@ -171,10 +193,13 @@ if __name__ == '__main__':
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
 
 
-    iter_entry_kernel_instance = MicroKernel( parameters_location=('parameters.json',["alternative", "place", 1]) )
+    ## Switching to another kernel_instance would mean all other classes (including collections would have to comply with changes!)
+    #
+#    iter_entry_kernel_instance = MicroKernel( parameters_location=('parameters.json',["alternative", "place", 1]) )
+#    iterative_entry = iter_entry_kernel_instance.find_Entry('iterative_functions')
 
-    iterative_entry = iter_entry_kernel_instance.find_Entry('iterative_functions')
-    recursive_entry = smart_kernel_instance.find_Entry('recursive_functions')
+    iterative_entry = default_kernel_instance.find_Entry('iterative_functions')
+    recursive_entry = default_kernel_instance.find_Entry('recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):
         entry_name  = funcs_entry.get_name()
@@ -182,7 +207,7 @@ if __name__ == '__main__':
         fact_n      = funcs_entry.call('factorial', {} )
         print("{} : fib(n) = {}, fact(n) = {}\n".format(entry_name, fib_n, fact_n))
 
-    params_entry    = smart_kernel_instance.find_Entry('params_entry')
+    params_entry    = default_kernel_instance.find_Entry('params_entry')
     params_dict     = params_entry.call('show', {'alpha' : 'Hello', 'gamma' : 'World', 'delta' : 420} )
     print(" 'show' method when called via API returned : {}\n".format(params_dict))
 
@@ -193,13 +218,13 @@ if __name__ == '__main__':
 
     ## direct inheritance from param_entry (via meta.parent_entry_name):
     #
-    latin = smart_kernel_instance.find_Entry('latin')
+    latin = default_kernel_instance.find_Entry('latin')
     print(latin.get_parameters())
     print("")
 
     ## direct inheritance from latin (and so indirect from param_entry):
     #
-    english = smart_kernel_instance.find_Entry('english')
+    english = default_kernel_instance.find_Entry('english')
     print(english.get_parameters())
     print("")
 
@@ -223,6 +248,6 @@ if __name__ == '__main__':
 
     ## what happens if the entry could not be found?
     #
-    gaelic_entry = smart_kernel_instance.find_Entry('gaelic')
+    gaelic_entry = default_kernel_instance.find_Entry('gaelic')
     print(gaelic_entry)
     print("")
