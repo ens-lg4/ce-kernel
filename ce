@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+import sys
+import class_entry
+from class_entry import default_kernel_instance
+
+
+def to_num_or_not_to_num(x):
+    "Convert the parameter to a number if it looks like it"
+
+    try:
+        x_int = int(x)
+        if type(x_int)==int:
+            return x_int
+    except:
+        try:
+            x_float = float(x)
+            if type(x_float)==float:
+                return x_float
+        except:
+            pass
+
+    return x
+
+
+def parse_cli_and_execute(kernel, arglist):
+    "Parse the command line into parameters for a call"
+
+    if len(arglist)<2:
+        print("CLI parsing error: need at least 2 arguments: <method> and <entry>")     # FIXME: convert to exception
+        return 1
+
+    method_name = arglist[0]
+    entry_name  = arglist[1]
+    local_param = {}
+
+    for syll in arglist[2:]:
+        undashed = syll[1:] if syll.startswith('-') else syll               # remove one dash
+        undashed = undashed[1:] if undashed.startswith('-') else undashed   # remove another dash
+
+        eq_position = undashed.find('=')
+        if eq_position>0:
+            param_name, param_value = undashed[0:eq_position], to_num_or_not_to_num(undashed[eq_position+1:])
+        else:
+            param_name, param_value = undashed, 'yes'
+
+        local_param[param_name] = param_value
+
+    entry       = kernel.find_Entry(entry_name)
+    ret_tuple   = entry.call(method_name, local_param)
+
+    print("method '{}' on entry '{}' with parameters {} returned ({})".format(method_name, entry_name, local_param, ret_tuple))
+
+    return 0    # assuming overall success
+
+
+if __name__ == '__main__':
+
+    ret_value = parse_cli_and_execute(default_kernel_instance, sys.argv[1:])
+    exit(ret_value)
