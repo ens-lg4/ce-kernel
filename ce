@@ -26,15 +26,17 @@ def to_num_or_not_to_num(x):
 def parse_cli_and_execute(kernel, arglist):
     "Parse the command line into parameters for a call"
 
-    if len(arglist)<2:
-        print("CLI parsing error: need at least 2 arguments: <method> and <entry>")     # FIXME: convert to exception
-        return 1
+    cmd_name    = arglist[0]
 
-    method_name = arglist[0]
-    entry_name  = arglist[1]
+    if len(arglist)<3:
+        print("{}: CLI parsing error, need at least 2 arguments: <method> and <entry>".format(cmd_name))     # FIXME: convert to exception
+        return 3
+
+    method_name = arglist[1]
+    entry_name  = arglist[2]
     local_param = {}
 
-    for syll in arglist[2:]:
+    for syll in arglist[3:]:
         undashed = syll[1:] if syll.startswith('-') else syll               # remove one dash
         undashed = undashed[1:] if undashed.startswith('-') else undashed   # remove another dash
 
@@ -46,15 +48,23 @@ def parse_cli_and_execute(kernel, arglist):
 
         local_param[param_name] = param_value
 
-    entry       = kernel.find_Entry(entry_name)
-    ret_tuple   = entry.call(method_name, local_param)
+    entry   = kernel.find_Entry(entry_name)
+    if not entry:
+        print("{}: Could not find the entry '{}'".format(cmd_name, entry_name))
+        return 2
 
-    print("method '{}' on entry '{}' with parameters {} returned ({})".format(method_name, entry_name, local_param, ret_tuple))
+    try:
+        ret_tuple   = entry.call(method_name, local_param)
+
+        print("{}: method '{}' on entry '{}' with parameters {} returned ({})".format(cmd_name, method_name, entry_name, local_param, ret_tuple))
+    except Exception as e:
+        print("{}: When trying to execute method '{}' on entry '{}' with parameters {}, got the exception: {}".format(cmd_name, method_name, entry_name, local_param, e))
+        return 1
 
     return 0    # assuming overall success
 
 
 if __name__ == '__main__':
 
-    ret_value = parse_cli_and_execute(default_kernel_instance, sys.argv[1:])
+    ret_value = parse_cli_and_execute(default_kernel_instance, sys.argv)
     exit(ret_value)
