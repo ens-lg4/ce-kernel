@@ -26,18 +26,16 @@ def to_num_or_not_to_num(x):
 def parse_cli_and_execute(kernel, arglist):
     "Parse the command line into parameters for a call"
 
-    cmd_name    = arglist[0]
+    def is_param_like(s):
+        "Check that an argument looks like a param"
 
-    if len(arglist)<3:
-        print("{}: CLI parsing error, need at least 2 arguments: <method> and <entry>".format(cmd_name))     # FIXME: convert to exception
-        return 3
+        return s.startswith('-') or '=' in s
 
-    method_name = arglist[1]
-    entry_name  = arglist[2]
-    local_param = {}
 
-    for syll in arglist[3:]:
-        undashed = syll[1:] if syll.startswith('-') else syll               # remove one dash
+    def undash_unpair(s):
+        "Remove 1 or 2 leading dashes from an argument"
+
+        undashed = s[1:] if s.startswith('-') else s                        # remove one dash
         undashed = undashed[1:] if undashed.startswith('-') else undashed   # remove another dash
 
         eq_position = undashed.find('=')
@@ -45,8 +43,37 @@ def parse_cli_and_execute(kernel, arglist):
             param_name, param_value = undashed[0:eq_position], to_num_or_not_to_num(undashed[eq_position+1:])
         else:
             param_name, param_value = undashed, 'yes'
+        return (param_name, param_value)
 
-        local_param[param_name] = param_value
+
+    cmd_name    = arglist[0]
+    uber_params = {}
+
+    i = 1
+    while i<len(arglist) and is_param_like(arglist[i]):   # uber-parameters of the call precede both method_name and entry_name
+        uber_param_key, uber_param_value = undash_unpair(arglist[i])
+        uber_params[uber_param_key] = uber_param_value
+        i += 1
+
+    if len(arglist)==1 or 'help' in uber_params:
+        print("Usage:\n\t{0} [--<uber_param_key>[=<uber_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*".format(cmd_name))
+        return 0
+
+    if len(arglist)-i<2 or ('=' in arglist[i]+arglist[i+1]) or arglist[i+1].startswith('-'):
+        print("{}: CLI parsing error, expecting 2 undashed wordlike arguments to follow uber_params: <method> and <entry>".format(cmd_name))     # FIXME: convert to exception
+        return 3
+
+    method_name = arglist[i]
+    entry_name  = arglist[i+1]
+    call_params = {}
+
+    for syll in arglist[i+2:]:
+        param_name, param_value = undash_unpair(syll)
+        call_params[param_name] = param_value
+
+## Did we parse it correctly?
+#
+#    print(f"{cmd_name}: uber_params={uber_params}, method_name={method_name}, entry_name={entry_name}, call_params={call_params}\n")
 
     entry   = kernel.find_Entry(entry_name)
     if not entry:
@@ -54,11 +81,11 @@ def parse_cli_and_execute(kernel, arglist):
         return 2
 
     try:
-        ret_tuple   = entry.call(method_name, local_param)
+        ret_tuple   = entry.call(method_name, call_params)
 
-        print("{}: method '{}' on entry '{}' with parameters {} returned ({})".format(cmd_name, method_name, entry_name, local_param, ret_tuple))
+        print("{}: method '{}' on entry '{}' with parameters {} returned ({})".format(cmd_name, method_name, entry_name, call_params, ret_tuple))
     except Exception as e:
-        print("{}: When trying to execute method '{}' on entry '{}' with parameters {}, got the exception: {}".format(cmd_name, method_name, entry_name, local_param, e))
+        print("{}: When trying to execute method '{}' on entry '{}' with parameters {}, got the exception: {}".format(cmd_name, method_name, entry_name, call_params, e))
         return 1
 
     return 0    # assuming overall success
