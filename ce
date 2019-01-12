@@ -71,9 +71,9 @@ def parse_cli_and_execute(kernel, arglist):
         param_name, param_value = undash_unpair(syll)
         call_params[param_name] = param_value
 
-## Did we parse it correctly?
-#
-#    print(f"{cmd_name}: uber_params={uber_params}, method_name={method_name}, entry_name={entry_name}, call_params={call_params}\n")
+    if 'dryrun' in uber_params:     # just check that the command line was parsed correctly
+        print("{} command line parser:\n\tuber_params={}, method_name={}, entry_name={}, call_params={}\n".format(cmd_name, uber_params, method_name, entry_name, call_params))
+        return 0
 
     entry   = kernel.find_Entry(entry_name)
     if not entry:
