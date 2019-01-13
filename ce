@@ -23,8 +23,8 @@ def to_num_or_not_to_num(x):
     return x
 
 
-def parse_cli_and_execute(kernel, arglist):
-    "Parse the command line into parameters for a call"
+def cli_parse(arglist):
+    "Parse the command line"
 
     def is_param_like(s):
         "Check that an argument looks like a param"
@@ -48,28 +48,47 @@ def parse_cli_and_execute(kernel, arglist):
 
     cmd_name    = arglist[0]
     uber_params = {}
+    method_name = None
+    entry_name  = None
+    call_params = {}
 
+    ## Optional uber_params may follow the cmd_name:
+    #
     i = 1
     while i<len(arglist) and is_param_like(arglist[i]):   # uber-parameters of the call precede both method_name and entry_name
         uber_param_key, uber_param_value = undash_unpair(arglist[i])
         uber_params[uber_param_key] = uber_param_value
         i += 1
 
-    if len(arglist)==1 or 'help' in uber_params:
-        print("Usage:\n\t{0} [--<uber_param_key>[=<uber_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*".format(cmd_name))
-        return 0
+    ## No arguments means the same as --help
+    #
+    if len(arglist)==1:
+        uber_params['help'] = 'yes'
 
-    if len(arglist)-i<2 or ('=' in arglist[i]+arglist[i+1]) or arglist[i+1].startswith('-'):
-        print("{}: CLI parsing error, expecting 2 undashed wordlike arguments to follow uber_params: <method> and <entry>".format(cmd_name))     # FIXME: convert to exception
-        return 3
+    ## Expecting two consecutive non-params, <method_name> and <entry_name>
+    #
+    if len(arglist)-i>=2 and ('=' not in arglist[i]+arglist[i+1]) and not arglist[i+1].startswith('-'):
+        method_name, entry_name = arglist[i], arglist[i+1]
 
-    method_name = arglist[i]
-    entry_name  = arglist[i+1]
-    call_params = {}
-
+    ## Optional call_params may follow <method_name> and <entry_name>
+    #
     for syll in arglist[i+2:]:
         param_name, param_value = undash_unpair(syll)
         call_params[param_name] = param_value
+
+    return cmd_name, uber_params, method_name, entry_name, call_params
+
+
+def cli_execute(kernel, cmd_name, uber_params, method_name, entry_name, call_params):
+    "Execute the previously parsed command line"
+
+    if 'help' in uber_params:
+        print("Usage:\n\t{0} [--<uber_param_key>[=<uber_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*".format(cmd_name))
+        return 0
+
+    if method_name==None or entry_name==None:
+        print("{}: CLI parsing error, expecting 2 undashed wordlike arguments to follow uber_params: <method> and <entry>".format(cmd_name))     # FIXME: convert to exception
+        return 3
 
     if 'dryrun' in uber_params:     # just check that the command line was parsed correctly
         print("{} command line parser:\n\tuber_params={}, method_name={}, entry_name={}, call_params={}\n".format(cmd_name, uber_params, method_name, entry_name, call_params))
@@ -93,5 +112,6 @@ def parse_cli_and_execute(kernel, arglist):
 
 if __name__ == '__main__':
 
-    ret_value = parse_cli_and_execute(default_kernel_instance, sys.argv)
+    cmd_name, uber_params, method_name, entry_name, call_params = cli_parse(sys.argv)
+    ret_value = cli_execute(default_kernel_instance, cmd_name, uber_params, method_name, entry_name, call_params)
     exit(ret_value)
