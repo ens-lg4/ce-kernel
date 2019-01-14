@@ -79,6 +79,7 @@ if __name__ == '__main__':
 
     # When the entry's code is run as a script, perform local tests:
     #
-    cmd_name, uber_params, method_name, entry_name, call_params = cli_parse(['ce', '--u1=', '--u2=v2', '--u3', 'method_A', 'entry_B', '--p4', '--p5=v5', '--p6=', '--p7=v7'])
+    cmd_line = 'ce --u1= --u2=v2 --u3=33 -u4 method_A entry_B --p5 --p6=v6 --p7= --p8=800'
+    cmd_name, uber_params, method_name, entry_name, call_params = cli_parse( cmd_line.split(' ') )
     print("{} command line parser:\n\tuber_params={}, method_name={}, entry_name={}, call_params={}\n".format(cmd_name, uber_params, method_name, entry_name, call_params))
 
