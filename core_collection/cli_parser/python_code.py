@@ -1,26 +1,36 @@
 #!/usr/bin/env python3
 
 
-def to_num_or_not_to_num(x):
-    "Convert the parameter to a number if it looks like it"
-
-    try:
-        x_int = int(x)
-        if type(x_int)==int:
-            return x_int
-    except:
-        try:
-            x_float = float(x)
-            if type(x_float)==float:
-                return x_float
-        except:
-            pass
-
-    return x
-
-
 def cli_parse(arglist):
-    "Parse the command line"
+    """Parse the command line given as a list of string arguments.
+
+    The expected format is:
+        <executable_path> [--<uber_param_key>[=<uber_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*
+
+    Both uber_params and call_params may:
+        (1) have a value (numeric or string)
+        (2) have no value, but terminate with an equal sign (assuming the value to be '')
+        (3) have no value and no trailing equal sign (assuming the value to be 'yes')
+        (4) override a previously mentioned value from left to right
+    """
+
+    def to_num_or_not_to_num(x):
+        "Convert the parameter to a number if it looks like it"
+
+        try:
+            x_int = int(x)
+            if type(x_int)==int:
+                return x_int
+        except:
+            try:
+                x_float = float(x)
+                if type(x_float)==float:
+                    return x_float
+            except:
+                pass
+
+        return x
+
 
     def is_param_like(s):
         "Check that an argument looks like a param"
@@ -79,7 +89,8 @@ if __name__ == '__main__':
 
     # When the entry's code is run as a script, perform local tests:
     #
-    cmd_line = 'ce --u1= --u2=v2 --u3=33 -u4 method_A entry_B --p5 --p6=v6 --p7= --p8=800'
+    #
+    cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A entry_B --p5 --p6=60 p7= p6=600 --p8=v8'
     cmd_name, uber_params, method_name, entry_name, call_params = cli_parse( cmd_line.split(' ') )
     print("{} command line parser:\n\tuber_params={}, method_name={}, entry_name={}, call_params={}\n".format(cmd_name, uber_params, method_name, entry_name, call_params))
 
