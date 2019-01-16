@@ -149,6 +149,41 @@ class Entry:
         self.get_parameters()[param_name] = param_value
 
 
+    def reach_method(self, function_name, _ancestry_path=None):
+        """ Find a method for the given entry - either its own or belonging to one of its parents.
+        """
+
+        if _ancestry_path == None:
+            _ancestry_path = []
+
+        _ancestry_path += [ self.get_name() ]
+        try:
+            module_object   = self.get_module_object()
+            function_object = getattr(module_object, function_name)
+        except (ImportError, AttributeError) as e:
+            if self.parent_loaded():
+                return self.parent_entry.reach_method(function_name, _ancestry_path)
+            else:
+                raise NameError( "could not find the method '{}' along the ancestry path '{}'".format(function_name, ' --> '.join(_ancestry_path) ) )
+
+        return function_object
+
+
+    def print_help(self, function_name):
+        """ Print available information about the named method.
+        """
+
+        print( "Method: {}".format( function_name ) )
+        try:
+            ancestry_path = []
+            function_object = self.reach_method(function_name, _ancestry_path=ancestry_path)
+            print( "Defined in: {}".format( function_object.__module__ ))
+            print( "Ancestry path: {}".format( ' --> '.join(ancestry_path) ))
+            print( "DocString: {}".format( function_object.__doc__ ))
+        except NameError as e:
+            print( str(e) )
+
+
     def call(self, function_name, override_params=None, main_params=None):
         """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
@@ -251,3 +286,11 @@ if __name__ == '__main__':
     gaelic_entry = default_kernel_instance.find_Entry('gaelic')
     print(gaelic_entry)
     print("")
+
+    params_entry.print_help('show')
+
+    core_collection_entry = default_kernel_instance.find_Entry('core_collection')
+    core_collection_entry.print_help('show_map')
+    core_collection_entry.print_help('find_one')
+
+    core_collection_entry.print_help('find_two')
