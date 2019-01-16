@@ -4,6 +4,8 @@
 
 
 def show(**params):
+    """ Show all parameters - either defined in the call or defined in any of the ancestors.
+    """
 
     for name in sorted(params):
         print('Param {} : {}'.format(name,params[name]))

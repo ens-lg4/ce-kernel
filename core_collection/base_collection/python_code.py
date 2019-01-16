@@ -3,11 +3,17 @@
 # Find a given name in the given or stored index
 
 def show_map(name_2_path):
+    """ Show the whole name_2_path index of this collection.
+    """
+
     from pprint import pprint
     pprint(name_2_path)
 
 
 def find_one(name, name_2_path):
+    """ Find a relative path of the named entry in this collection entry's index.
+    """
+
     print('requested entry name = "{}"'.format(name))
     path = name_2_path.get(name)
     if path:
