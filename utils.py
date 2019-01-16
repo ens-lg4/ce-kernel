@@ -6,11 +6,10 @@
 #       https://stackoverflow.com/questions/196960/can-you-list-the-keyword-arguments-a-python-function-receives
 
 import os           # to manipulate file paths
-import sys          # to refer to THIS module
+import sys          # to obtain Python's version
 import imp          # to import modules dynamically
 import json         # to load JSON-based config files
 import inspect      # to obtain a random function's signature
-import builtins     # to test hex() function
 
 
 def merged_dictionaries(under_dict, over_dict):
@@ -33,16 +32,11 @@ def get_entrys_python_module(module_path, code_container_name='python_code'):
     return module_object
 
 
-def free_access(module_object, function_name, given_arg_dict):
-    """ Call a given function from a given module_object and feed it with arguments from a given dictionary.
+def free_access(function_object, given_arg_dict):
+    """ Call a given function_object and feed it with arguments from a given dictionary.
 
         The function can be declared as having named args, defaults and optionally **kwargs.
     """
-
-    try:
-        function_object = getattr(module_object, function_name)
-    except AttributeError:
-        raise NameError( "name '{}' is not defined in Python module '{}'".format(function_name, module_object.__name__) )
 
     if sys.version_info[0] < 3:
         supported_arg_names, varargs, varkw, defaults = inspect.getargspec(function_object)
@@ -56,7 +50,7 @@ def free_access(module_object, function_name, given_arg_dict):
 
     if missing_args_set:
         raise TypeError( 'The "{}" function IS NOT callable with {}. Missing required positional supported_arg_names: {}'
-                        .format(function_name, given_arg_dict, list(missing_args_set))
+                        .format(function_object.__name__, given_arg_dict, list(missing_args_set))
         )
     else:
         if varkw:   # only leave out the required parameters without defaults:
@@ -104,7 +98,6 @@ if __name__ == '__main__':
     print("OVER: {}".format(over))
     print("MERGED: {}\n".format(merged))
 
-    this_module = sys.modules[__name__]
     foo_module  = get_entrys_python_module('core_collection/foo_entry')
     bar_module  = get_entrys_python_module('core_collection/bar_entry')
 
@@ -122,38 +115,39 @@ if __name__ == '__main__':
 
 
     # a remote access call:
-    p, q = free_access(foo_module, 'foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
+    p, q = free_access( foo_module.foo, { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_foo = {}, Q_foo = {}\n".format(p,q))
 
     # another remote access call (with kwargs):
-    p, q = free_access(bar_module, 'bar', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'delta' : 400, 'lambda' : 7777, 'mu' : 8888 } )
+    p, q = free_access( bar_module.bar, { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'delta' : 400, 'lambda' : 7777, 'mu' : 8888 } )
     print("P_bar = {}, Q_bar = {}\n".format(p,q))
 
     # a local access call:
-    p, q, r = free_access(this_module, 'baz', { 'alpha' : 100, 'gamma' : 300, 'lambda' : 7777, 'mu' : 8888 } )
+    p, q, r = free_access( baz, { 'alpha' : 100, 'gamma' : 300, 'lambda' : 7777, 'mu' : 8888 } )
     print("P_baz = {}, Q_baz = {}, R_baz = {}\n".format(p,q,r))
 
 
     # an incomplete/underdetermined access call throws an exception:
     try:
-        s = free_access(foo_module, 'foo', { 'beta' : 200, 'lambda' : 7777 } )
+        s = free_access( foo_module.foo, { 'beta' : 200, 'lambda' : 7777 } )
         print("S_foo = {}\n".format(s))
     except TypeError as e:
         print(str(e) + "\n")
 
     # an incomplete/underdetermined access call throws an exception:
     try:
-        s = free_access(bar_module, 'bar', { 'beta' : 200, 'delta' : 400 } )
+        s = free_access( bar_module.bar, { 'beta' : 200, 'delta' : 400 } )
         print("S_bar = {}\n".format(s))
     except TypeError as e:
         print(str(e) + "\n")
 
     # an incomplete/underdetermined access call throws an exception:
     try:
-        s = free_access(this_module, 'baz', { 'beta' : 200 } )
+        s = free_access( baz, { 'beta' : 200 } )
         print("S_bar = {}\n".format(s))
     except TypeError as e:
         print(str(e) + "\n")
 
-    h = free_access(builtins, 'hex', { 'number' : 31 })
-    print("hex = {}\n".format(h))
+    if sys.version_info[0] >=3:     # built-in functions in Python 2 are not first-class functions and cannot be introspected
+        h = free_access( hex, { 'number' : 31 })
+        print("hex = {}\n".format(h))
