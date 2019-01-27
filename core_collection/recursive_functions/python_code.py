@@ -2,7 +2,11 @@
 
 # Example recursive functions
 
+
 def fibonacci(n):
+    """ Recursive implementation of the fibonacci(n) function
+    """
+
     if n==0 or n==1:
         return n
     else:
@@ -10,6 +14,9 @@ def fibonacci(n):
 
 
 def factorial(n):
+    """ Recursive implementation of the factorial(n) function
+    """
+
     if n<1:
         return 1
     else:

@@ -8,13 +8,9 @@ from class_entry import default_kernel_instance
 def cli_execute(kernel, cmd_name, uber_params, method_name, entry_name, call_params):
     "Execute the previously parsed command line"
 
-    if 'help' in uber_params:
-        print("Usage:\n\t{0} [--<uber_param_key>[=<uber_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*".format(cmd_name))
-        return 0
-
     if method_name==None or entry_name==None:
-        print("{}: CLI parsing error, expecting 2 undashed wordlike arguments to follow uber_params: <method> and <entry>".format(cmd_name))     # FIXME: convert to exception
-        return 3
+        print("Usage:\n\t{0} [--<uber_param_key>[=<uber_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*".format(cmd_name))
+        return 0 if 'help' in uber_params else 3
 
     if 'dryrun' in uber_params:     # just check that the command line was parsed correctly
         print("{} command line parser:\n\tuber_params={}, method_name={}, entry_name={}, call_params={}\n".format(cmd_name, uber_params, method_name, entry_name, call_params))
@@ -25,13 +21,17 @@ def cli_execute(kernel, cmd_name, uber_params, method_name, entry_name, call_par
         print("{}: Could not find the entry '{}'".format(cmd_name, entry_name))
         return 2
 
-    try:
-        ret_tuple   = entry.call(method_name, call_params)
+    if 'help' in uber_params:   # now that the format is ok, reaching for method's documentation
+        entry.print_help(method_name)
 
-        print("{}: method '{}' on entry '{}' with parameters {} returned ({})".format(cmd_name, method_name, entry_name, call_params, ret_tuple))
-    except Exception as e:
-        print("{}: When trying to execute method '{}' on entry '{}' with parameters {}, got the exception: {}".format(cmd_name, method_name, entry_name, call_params, e))
-        return 1
+    else:
+        try:
+            ret_tuple   = entry.call(method_name, call_params)
+
+            print("{}: method '{}' on entry '{}' with parameters {} returned ({})".format(cmd_name, method_name, entry_name, call_params, ret_tuple))
+        except Exception as e:
+            print("{}: When trying to execute method '{}' on entry '{}' with parameters {}, got the exception: {}".format(cmd_name, method_name, entry_name, call_params, e))
+            return 1
 
     return 0    # assuming overall success
 

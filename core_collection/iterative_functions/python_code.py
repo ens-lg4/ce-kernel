@@ -2,7 +2,11 @@
 
 # Example iterative functions
 
+
 def fibonacci(n):
+    """ Iterative implementation of the fibonacci(n) function
+    """
+
     a, b = 0, 1
     for _ in range(n):
         a, b = b, a+b
@@ -10,6 +14,9 @@ def fibonacci(n):
 
 
 def factorial(n):
+    """ Iterative implementation of the factorial(n) function
+    """
+
     prod = 1
     for i in range(1,n+1):
         prod *= i
