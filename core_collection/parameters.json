@@ -2,6 +2,7 @@
     "name_2_path" : {
         "entries"               : ".",
         "base_collection"       : "base_collection",
+        "kaware"                : "kaware",
         "cli_parser"            : "cli_parser",
         "params_entry"          : "params_entry",
         "iterative_functions"   : "iterative_functions",

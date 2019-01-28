@@ -104,7 +104,14 @@ class Entry:
 
 
     def get_module_object(self):
-        self.module_object = self.module_object or utils.get_entrys_python_module(self.entry_path, code_container_name=self.kernel.code_container_name)
+        if self.module_object==None:    # lazy-loading condition
+            self.module_object = utils.get_entrys_python_module(self.entry_path, code_container_name=self.kernel.code_container_name) or False
+
+            if self.module_object:                          # kernel-aware entry modules acquire extra attributes set via their namespace (CK way)
+                if hasattr(self.module_object, 'kernel'):
+                    self.module_object.kernel = self.kernel
+                if hasattr(self.module_object, 'entry'):
+                    self.module_object.entry = self
 
         return self.module_object
 
