@@ -108,10 +108,10 @@ class Entry:
             self.module_object = utils.get_entrys_python_module(self.entry_path, code_container_name=self.kernel.code_container_name) or False
 
             if self.module_object:                          # kernel-aware entry modules acquire extra attributes set via their namespace (CK way)
-                if hasattr(self.module_object, 'kernel'):
-                    self.module_object.kernel = self.kernel
-                if hasattr(self.module_object, 'entry'):
-                    self.module_object.entry = self
+                if hasattr(self.module_object, '__kernel__'):
+                    self.module_object.__kernel__ = self.kernel
+                if hasattr(self.module_object, '__entry__'):
+                    self.module_object.__entry__ = self
 
         return self.module_object
 

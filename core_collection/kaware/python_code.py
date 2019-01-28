@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 
 
-kernel  = None
-entry   = None
+__kernel__  = None
+__entry__   = None
 
 def show():
     """ This entry can perform some introspection and see if it has access to 'kernel' and 'entry'
     """
 
-    print("Hello, I am kaware entry, my kernel is '{}', my entry is '{}'".format(kernel, entry))
+    print("Hello, I am kaware entry, my kernel is '{}', my entry is '{}'".format(__kernel__, __entry__))
 
-    if kernel:
-        core_collection_entry = kernel.get_cached('core_collection')
+    if __kernel__:
+        core_collection_entry = __kernel__.get_cached('core_collection')
         print("Cached core_collection = {}".format(core_collection_entry))
 
-    if entry:
-        print("This entry's name is {}".format(entry.get_name()))
-        print("This entry's path is {}".format(entry.get_path()))
+    if __entry__:
+        print("This entry's name is {}".format(__entry__.get_name()))
+        print("This entry's path is {}".format(__entry__.get_path()))
 
 
 if __name__ == '__main__':
