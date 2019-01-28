@@ -80,7 +80,6 @@ class Entry:
             #
             self.module_object  = None
             self.meta           = None
-            self.has_meta       = None
             self.parameters     = None
 
             kernel.encache_entry( self.entry_name, self )
@@ -129,7 +128,7 @@ class Entry:
     def get_metas(self):
         if self.meta==None:             # lazy-loading condition
             meta_rel_path, meta_struct_path = self.kernel.meta_location
-            self.meta, self.has_meta = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
+            self.meta, _ = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
 
         return self.meta
 
@@ -137,7 +136,7 @@ class Entry:
     def get_parameters(self):
         if self.parameters==None:       # lazy-loading condition
             parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
-            own_parameters, has_parameters = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
+            own_parameters, _ = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
 
             if self.parent_loaded():
                 self.parameters = utils.merged_dictionaries(self.parent_entry.get_parameters(), own_parameters)
