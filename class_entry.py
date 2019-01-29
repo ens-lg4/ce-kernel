@@ -43,7 +43,7 @@ class MicroKernel:
 
                 collection_obj = Entry(collection_path, kernel=self)
 
-                if collection_obj.reach_method('find_one'):     # FIXME: maybe preserve the fundction_object once found, to run it faster?
+                if collection_obj.reach_method('find_one'):     # FIXME: maybe preserve the function_object once found, to run it faster?
                     full_path = collection_obj.call('find_one', { 'name' : entry_name} )
                     if full_path:
                         break
