@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+""" CommanLine API of this framework.
+
+This script provides CommandLine API of the framework.
+Please run it without parameters to get help on syntax.
+
+Its source is also the simplest example of Python API.
+"""
+
 import sys
 from class_entry import default_kernel_instance
 
