@@ -167,21 +167,6 @@ class Entry:
         return function_object
 
 
-    def print_help(self, function_name):
-        """ Print available information about the named method.
-        """
-
-        print( "Method: {}".format( function_name ) )
-        try:
-            ancestry_path = []
-            function_object = self.reach_method(function_name, _ancestry_path=ancestry_path)
-            print( "Defined in: {}".format( function_object.__module__ ))
-            print( "Ancestry path: {}".format( ' --> '.join(ancestry_path) ))
-            print( "DocString: {}".format( function_object.__doc__ ))
-        except NameError as e:
-            print( str(e) )
-
-
     def call(self, function_name, call_specific_params=None, entry_wide_params=None):
         """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
@@ -284,10 +269,6 @@ if __name__ == '__main__':
     print(gaelic_entry)
     print("")
 
-    params_entry.print_help('show')
-
-    core_collection_entry = default_kernel_instance.find_Entry('core_collection')
-    core_collection_entry.print_help('show_map')
-    core_collection_entry.print_help('find_one')
-
-    core_collection_entry.print_help('find_two')
+    help_entry = default_kernel_instance.find_Entry('help')
+    help_entry.call('entry', { 'entry_name': 'kaware'})
+    help_entry.call('method', { 'entry_name': 'cli_parser', 'method_name': 'cli_parse'})
