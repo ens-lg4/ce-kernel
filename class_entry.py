@@ -44,9 +44,8 @@ class MicroKernel:
                 collection_obj = Entry(collection_path, kernel=self)
 
                 if collection_obj.reach_method('find_one'):     # FIXME: maybe preserve the fundction_object once found, to run it faster?
-                    local_path = collection_obj.call('find_one', { 'name' : entry_name} )
-                    if local_path:
-                        full_path = collection_obj.get_path(local_path)
+                    full_path = collection_obj.call('find_one', { 'name' : entry_name} )
+                    if full_path:
                         break
                 else:
                     print("{} doesn't implement or inherit 'find_one' method".format(collection_path))
