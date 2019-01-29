@@ -105,12 +105,6 @@ class Entry:
         if self.module_object==None:    # lazy-loading condition
             self.module_object = utils.get_entrys_python_module(self.entry_path, code_container_name=self.kernel.code_container_name) or False
 
-            if self.module_object:                          # kernel-aware entry modules acquire extra attributes set via their namespace (CK way)
-                if hasattr(self.module_object, '__kernel__'):
-                    self.module_object.__kernel__ = self.kernel
-                if hasattr(self.module_object, '__entry__'):
-                    self.module_object.__entry__ = self
-
         return self.module_object
 
 
@@ -189,14 +183,19 @@ class Entry:
             print( str(e) )
 
 
-    def call(self, function_name, override_params=None, main_params=None):
+    def call(self, function_name, call_specific_params=None, entry_wide_params=None):
         """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
             The function can be declared as having positional args, named args with defaults and possibly also **kwargs.
         """
 
-        main_params     = main_params or self.get_parameters()
-        merged_params   = utils.merged_dictionaries(main_params, override_params) if override_params else main_params
+        entry_wide_params   = entry_wide_params or self.get_parameters()
+        merged_params       = utils.merged_dictionaries(entry_wide_params, call_specific_params) if call_specific_params else entry_wide_params
+
+        merged_params.update( {             # These special parameters are non-overridable at the moment. Should they be?
+            '__kernel__'    : self.kernel,
+            '__entry__'     : self,
+        } )
 
         function_object = self.reach_method(function_name)
         return utils.free_access(function_object, merged_params)

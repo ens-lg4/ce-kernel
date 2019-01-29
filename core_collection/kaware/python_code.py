@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
+""" An example entry to test the kernel/entry awareness feature.
+"""
 
-__kernel__  = None
-__entry__   = None
-
-def show():
+def show(__kernel__=None, __entry__=None):
     """ This entry can perform some introspection and see if it has access to 'kernel' and 'entry'
     """
 
