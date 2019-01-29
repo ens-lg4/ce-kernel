@@ -12,7 +12,7 @@ def show_map(name_2_path):
     pprint(name_2_path)
 
 
-def find_one(entry_name, name_2_path, __entry__=None):
+def find(entry_name, name_2_path, __entry__=None):
     """ Find a relative path of the named entry in this collection entry's index.
     """
 
@@ -36,5 +36,5 @@ if __name__ == '__main__':
 
     show_map({"alpha" : 10, "beta" : 200})
 
-    returned_path = find_one('second', { "first" : "relative/path/to/the/first", "second" : "relative/path/to/the/second" })
+    returned_path = find('second', { "first" : "relative/path/to/the/first", "second" : "relative/path/to/the/second" })
     print("returned_path = {}\n".format(returned_path))
