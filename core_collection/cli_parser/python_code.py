@@ -5,9 +5,9 @@ def cli_parse(arglist):
     """Parse the command line given as a list of string arguments.
 
     The expected format is:
-        <executable_path> [--<uber_param_key>[=<uber_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*
+        <executable_path> [--<job_param_key>[=<job_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*
 
-    Both uber_params and call_params may:
+    Both job_params and call_params may:
         (1) have a value (numeric or string)
         (2) have no value, but terminate with an equal sign (assuming the value to be '')
         (3) have no value and no trailing equal sign (assuming the value to be 'yes')
@@ -51,30 +51,27 @@ def cli_parse(arglist):
             param_name, param_value = undashed, 'yes'
         return (param_name, param_value)
 
-
-    cmd_name    = arglist[0]
-    uber_params = {}
-    method_name = None
-    entry_name  = None
+    job_params  = { 'caller_name'   : arglist[0] }
     call_params = {}
 
-    ## Optional uber_params may follow the cmd_name:
+    ## Optional job_params may follow the caller_name:
     #
     i = 1
-    while i<len(arglist) and is_param_like(arglist[i]):   # uber-parameters of the call precede both method_name and entry_name
-        uber_param_key, uber_param_value = undash_unpair(arglist[i])
-        uber_params[uber_param_key] = uber_param_value
+    while i<len(arglist) and is_param_like(arglist[i]):   # auxiliary job parameters precede both <method_name> and <entry_name>
+        job_param_key, job_param_value = undash_unpair(arglist[i])
+        job_params[job_param_key] = job_param_value
         i += 1
 
     ## No arguments means the same as --help
     #
     if len(arglist)==1:
-        uber_params['help'] = 'yes'
+        job_params['help'] = 'yes'
 
     ## Expecting two consecutive non-params, <method_name> and <entry_name>
     #
     if len(arglist)-i>=2 and ('=' not in arglist[i]+arglist[i+1]) and not arglist[i+1].startswith('-'):
-        method_name, entry_name = arglist[i], arglist[i+1]
+        job_params['method_name']   = arglist[i]
+        job_params['entry_name']    = arglist[i+1]
 
     ## Optional call_params may follow <method_name> and <entry_name>
     #
@@ -82,15 +79,13 @@ def cli_parse(arglist):
         param_name, param_value = undash_unpair(syll)
         call_params[param_name] = param_value
 
-    return cmd_name, uber_params, method_name, entry_name, call_params
+    return job_params, call_params
 
 
 if __name__ == '__main__':
 
-    # When the entry's code is run as a script, perform local tests:
-    #
+    ## When the entry's code is run as a script, perform local tests:
     #
     cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A entry_B --p5 --p6=60 p7= p6=600 --p8=v8'
-    cmd_name, uber_params, method_name, entry_name, call_params = cli_parse( cmd_line.split(' ') )
-    print("{} command line parser:\n\tuber_params={}, method_name={}, entry_name={}, call_params={}\n".format(cmd_name, uber_params, method_name, entry_name, call_params))
-
+    job_params, call_params = cli_parse( cmd_line.split(' ') )
+    print("Command line parser:\n\tjob_params={}, call_params={}\n".format(job_params, call_params))
