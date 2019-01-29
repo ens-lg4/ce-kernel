@@ -1,49 +1,13 @@
 #!/usr/bin/env python3
 
 import sys
-import class_entry
 from class_entry import default_kernel_instance
-
-
-def cli_execute(kernel, job_params, call_params):
-    "Execute the previously parsed command line"
-
-    caller_name = job_params.get('caller_name')
-    method_name = job_params.get('method_name')
-    entry_name  = job_params.get('entry_name')
-
-    if method_name==None or entry_name==None:
-        print("Usage:\n\t{0} [--<job_param_key>[=<job_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*".format(caller_name))
-        return 0 if 'help' in job_params else 3
-
-    if 'dryrun' in job_params:     # just check that the command line was parsed correctly
-        print("{} command line parser:\n\tjob_params={}, call_params={}\n".format(caller_name, job_params, call_params))
-        return 0
-
-    entry   = kernel.find_Entry(entry_name)
-    if not entry:
-        print("{}: Could not find the entry '{}'".format(caller_name, entry_name))
-        return 2
-
-    if 'help' in job_params:   # now that the format is ok, reaching for method's documentation
-        entry.print_help(method_name)
-
-    else:
-        try:
-            ret_tuple   = entry.call(method_name, call_params)
-
-            print("{}: method '{}' on entry '{}' with parameters {} returned ({})".format(caller_name, method_name, entry_name, call_params, ret_tuple))
-        except Exception as e:
-            print("{}: When trying to execute method '{}' on entry '{}' with parameters {}, got the exception: {}".format(caller_name, method_name, entry_name, call_params, e))
-            return 1
-
-    return 0    # assuming overall success
 
 
 if __name__ == '__main__':
 
-    parser_entry = default_kernel_instance.find_Entry('cli_parser')
-    job_params, call_params = parser_entry.call('cli_parse', {'arglist': sys.argv})
+    job_params, call_params = default_kernel_instance.find_Entry('cli_parser').call('cli_parse', {'arglist': sys.argv})
 
-    ret_value = cli_execute(default_kernel_instance, job_params, call_params)
+    ret_value = default_kernel_instance.find_Entry('job').call('execute_job', { 'job_params': job_params, 'call_params': call_params })
+
     exit(ret_value)

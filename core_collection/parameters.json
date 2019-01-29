@@ -2,8 +2,9 @@
     "name_2_path" : {
         "entries"               : ".",
         "base_collection"       : "base_collection",
-        "kaware"                : "kaware",
         "cli_parser"            : "cli_parser",
+        "job"                   : "job",
+        "kaware"                : "kaware",
         "params_entry"          : "params_entry",
         "iterative_functions"   : "iterative_functions",
         "recursive_functions"   : "recursive_functions"
