@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" Find a given name in the given or stored index
+""" Find a given entry_name in the given or stored index
 """
 
 
@@ -12,11 +12,11 @@ def show_map(name_2_path):
     pprint(name_2_path)
 
 
-def find_one(name, name_2_path, __entry__=None):
+def find_one(entry_name, name_2_path, __entry__=None):
     """ Find a relative path of the named entry in this collection entry's index.
     """
 
-    relative_path   = name_2_path.get(name)
+    relative_path   = name_2_path.get(entry_name)
 
     if relative_path:
         if __entry__:
