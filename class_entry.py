@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+__version__ = '0.0.1'   # Try not to forget to update it!
+
 import os
 import utils
 
@@ -18,6 +20,10 @@ class MicroKernel:
         self.entry_cache            = {}
 
         self.collection_search_order = [ base_collection_path, core_collection_path, user_collection_path ]
+
+    def get_version(self):
+        return __version__
+
 
     def get_cached(self, entry_name):
         if entry_name in self.entry_cache:              # FIXME: make sure to spot-clear the cache as we add/remove/move entries on disk
@@ -186,6 +192,8 @@ class Entry:
 
 
 if __name__ == '__main__':
+
+    print("Kernel version = {}".format(default_kernel_instance.get_version()))
 
     print(core_repository_path)
     foo_entry = Entry(core_collection_path + '/foo_entry')
