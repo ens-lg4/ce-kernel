@@ -8,6 +8,10 @@ def execute_job(job_params, call_params, __kernel__=None):
     method_name = job_params.get('method_name')
     entry_name  = job_params.get('entry_name')
 
+    if 'version' in job_params:
+        print("Kernel version: {}".format(__kernel__.get_version()))
+        return 0
+
     if method_name==None or entry_name==None:
         print("Usage:\n\t{0} [--<job_param_key>[=<job_param_value>]]* <method_name> <entry_name> [--<param_key>[=<param_value>]]*".format(caller_name))
         return 0 if 'help' in job_params else 3
