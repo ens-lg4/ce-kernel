@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.1'   # Try not to forget to update it!
+__version__ = '0.0.2'   # Try not to forget to update it!
 
 import os
 import utils
@@ -85,7 +85,7 @@ class Entry:
             #
             self.module_object  = None
             self.meta           = None
-            self.parameters     = None
+            self.own_parameters = None
 
             kernel.encache_entry( self.entry_name, self )
 
@@ -132,25 +132,36 @@ class Entry:
         return self.meta
 
 
-    def get_parameters(self):
-        if self.parameters==None:       # lazy-loading condition
+    def parameters_loaded(self):
+        if self.own_parameters==None:       # lazy-loading condition
             parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
-            own_parameters, _ = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
+            self.own_parameters, _ = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
 
-            if self.parent_loaded():
-                self.parameters = utils.merged_dictionaries(self.parent_entry.get_parameters(), own_parameters)
-            else:
-                self.parameters = own_parameters
-
-        return self.parameters
+        return self.own_parameters
 
 
     def get_param(self, param_name):
-        return self.get_parameters().get(param_name, None)
+        own_parameters = self.parameters_loaded()
+
+        if param_name in own_parameters:
+            return own_parameters[param_name]
+        elif self.parent_loaded():
+            return self.parent_entry.get_param(param_name)
+        else:
+            return None
+
+
+    def generate_merged_parameters(self):
+        own_parameters = self.parameters_loaded()
+
+        if self.parent_loaded():
+            return utils.merged_dictionaries(self.parent_entry.parameters_loaded(), own_parameters)
+        else:
+            return own_parameters
 
 
     def set_param(self, param_name, param_value):
-        self.get_parameters()[param_name] = param_value
+        self.parameters_loaded()[param_name] = param_value
 
 
     def reach_method(self, function_name, _ancestry_path=None):
@@ -179,7 +190,9 @@ class Entry:
             The function can be declared as having positional args, named args with defaults and possibly also **kwargs.
         """
 
-        entry_wide_params   = entry_wide_params or self.get_parameters()
+        function_object     = self.reach_method(function_name)
+
+        entry_wide_params   = entry_wide_params or self.generate_merged_parameters()
         merged_params       = utils.merged_dictionaries(entry_wide_params, call_specific_params) if call_specific_params else entry_wide_params
 
         merged_params.update( {             # These special parameters are non-overridable at the moment. Should they be?
@@ -187,7 +200,6 @@ class Entry:
             '__entry__'     : self,
         } )
 
-        function_object = self.reach_method(function_name)
         return utils.free_access(function_object, merged_params)
 
 
@@ -244,13 +256,13 @@ if __name__ == '__main__':
     ## direct inheritance from param_entry (via meta.parent_entry_name):
     #
     latin = default_kernel_instance.find_Entry('latin')
-    print(latin.get_parameters())
+    print(latin.generate_merged_parameters())
     print("")
 
     ## direct inheritance from latin (and so indirect from param_entry):
     #
     english = default_kernel_instance.find_Entry('english')
-    print(english.get_parameters())
+    print(english.generate_merged_parameters())
     print("")
 
     latin.call('latin_only', { 'alpha' : 'Hello' })
