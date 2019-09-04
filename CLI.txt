@@ -1,0 +1,109 @@
+Common Experience: Command Line Interface (technical spec notes)
+================================================================
+
+Since we want to minimize the code footprint of the CE system, we want to be able to build as much as possible
+from as few building blocks as possible. Therefore the Command Line Interface is also structured around this
+"building more from less" concept. We take shell pipes as our example and try to make them as lean as possible.
+
+Each CE command line can internally run a simple pipeline, which is a sequence of individual CE calls that may be linked.
+
+In order to avoid the overhead of operating system's pipes (and running multiple instances of CE interpreter)
+we shall use CLI format in "prefix notation" (verb is followed by its parameters "virtually piped" into
+another verb followed by its parameters, etc):
+
+    ce verb1 --param1a=... --param1b=... \
+       verb2 --param2a=... \
+       verb3 --param3a=... --param3b=...
+
+This format is easy to parse, provided all parameters are prefixed with "--" .
+
+
+Some verbs can have obligatory parameters, which allows us to skip the names of the obligatory parameters
+provided the correct order of them is kept:
+
+    ce verb1 oblig1a --option1b=... --option1c=... \
+       verb2 --option2a=... \
+       verb3 oblig3a oblig3b
+
+This format is still easy to parse, provided we have a quick access to every method's signature.
+
+
+In the most typical 2-step linked pipeline scenario an entry has to be found/resolved first,
+and then a method be called on the result(s).
+
+    # Single-resolution example. Equivalent of 'ck locate env --tags=model,tflite,resnet' :
+        ce find1 --query=env,model,tflite,resnet \
+           tabulate --fields=location
+
+Note 1. find1() or findN() is a method central to the whole CE system. It searches for entries
+        based on tags and attributes. The difference between them is how many results they are
+        expected to return (1 vs many).
+
+Note 2. The object that is passed through the "virtual pipe" between the verbs is a CE entry,
+        lazily loaded into an internal representation.
+
+Note 3. tabulate() is a data projection method that formats outgoing data into simple tables
+        that can be piped out of CE into traditional shell processing scripts.
+
+
+Using the second format (ordering obligatory parameters instead of naming them) allows to write even less:
+
+    # Single-resolution example. Equivalent of 'ck find env --tags=lib,armnn,rel.19.05,tflite,neon'
+        ce find1 lib,armnn,rel.19.05,tflite,neon \
+           tabulate entry_path
+
+A resolution may return multiple entries. The following example iterates through them:
+
+    # Multiple-resolution example. Equivalent of 'ck show env --tags=model,onnx,image-classification' :
+        ce findN env,model,onnx,image-classification \
+           tabulate data_uoa,name,version,tags --header! --format=...
+
+
+Since we pass an entry between verbs, we might as well make some on-the-fly changes, and even store the result:
+
+    # On-the-spot editing example. Load an entry, make some in-memory changes to its meta data, then store under a different name.
+        ce find1 env,model,model_type=tflite \
+           tweak --param.x=15 --param.y=20 --meta.z=pqr \
+           save --new_name=... --new_collection=...     # these are not properties of the object, but rather of the container collection
+
+Note 1. tweak() is a universal method that allows to edit different types of data according to their nature
+        ( override scalars, push/unshift/seek-and-remove arrays, add or remove dictionary entries, etc).
+
+Note 2. save() by default stores changes in the original entry, but if --new_name or --new_collection is given, can make an (edited) copy.
+
+
+There are also other ways to start the flow.
+
+Finding an entry using its name (way faster than using tags/attribs query, but less portable):
+
+        ce from python-package-tensorflow-1.12 \
+           install
+
+        ce from python-package-tensorflow-1.12 \
+           tweak --version=1.13 --tags-=v1.12 --tags=+v1.13 \
+           save --name=python-package-tensorflow-1.13
+
+
+It is even possible to start from scratch (assuming an empty entry by default) :
+
+        ce save --name=new_empty_ce_entry_in_dynamic_collection
+
+which can, of course, be modified on the fly:
+
+        ce tweak --alpha=15 --extlist=[png,git,jpg] \
+           save  --name=new_ce_entry_in_dynamic_collection
+
+Meta data can also be fed from an external file:
+
+            ce json_input --input_file=xyz.json | ce save --name=...
+
+or from standard input (assuming JSON input) :
+
+            jq ... | ce json_input save --name=...
+
+
+
+Accumulators:
+    TODO: The easiest way to aggregate results of multiple consecutive find1() calls?
+    An equivalent of setting deps[] structure.
+
