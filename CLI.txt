@@ -102,8 +102,23 @@ or from standard input (assuming JSON input) :
             jq ... | ce json_input save --name=...
 
 
+Multi-environment resolve examples:
 
-Accumulators:
-    TODO: The easiest way to aggregate results of multiple consecutive find1() calls?
-    An equivalent of setting deps[] structure.
+    # resolve() runs "find1" on each entry in deps{} , adding "env" type on the fly, and outputs env{} , merged in the correct order
+        ce from env \
+           resolve --deps.lib.query=lib,tflite --deps.model.query=model,tflite --deps.images.query=preprocessed,imagenet \
+           json_output
 
+    # M-to-1 resolution. Equivalent of 'ck virtual env --tag_groups="lib,tflite model,tflite preprocessed,imagenet' :
+        ce from env \
+           resolve --deps=+{query=lib,tflite} --deps=+{query=model,tflite} --deps=+{query=preprocessed,imagenet} \
+           shell --cmd=...
+
+
+    # Assumes automatic resolve()
+        ce find1 program,image-classification,tf,cpp \
+            run
+
+    # Test resolve() for a particular program (assumes "program" inherits from "env" - or at least from "resolvable" interface):
+        ce find1 program,image-classification,tf,cpp \
+            resolve
