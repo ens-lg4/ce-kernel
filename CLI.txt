@@ -162,6 +162,7 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
 
 (program)
     compile                                                 1->1    # builds the code and creates a temporary entry (in /tmp ?), passing it on for execution
+                                                                    # This "compiled" entry adds code, but inherits the rest from the "source" entry (so is not designed to work without it)
     run [repetitions=1]                                     1->1    # runs and creates a "running report" structure, suitable for recording as an experiment
 
 To avoid unpredictable behaviour, but still support the concept of "current dir as an entry",
