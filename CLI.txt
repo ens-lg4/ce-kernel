@@ -160,3 +160,10 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
     detect [full_path] [search_path]                        1->1    # find a given pre-installed package and set up an environment entry pointing at it
     install [package_version] [package_options]             1->1    # install/build a package in a new entry
 
+
+To avoid unpredictable behaviour, but still support the concept of "current dir as an entry",
+this functionality has to be explicitly required:
+    ce from . install
+    ce from . detect
+Note that entries loaded this way do not know to which collection they belong.
+So collection-related operations with the "cwd entry" are discouraged.
