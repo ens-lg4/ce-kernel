@@ -5,31 +5,46 @@ Since we want to minimize the code footprint of the CE system, we want to be abl
 from as few building blocks as possible. Therefore the Command Line Interface is also structured around this
 "building more from less" concept. We take shell pipes as our example and try to make them as lean as possible.
 
-Each CE command line can internally run a simple pipeline, which is a sequence of individual CE calls that may be linked.
+To achieve this, method chaining (*) similar to Unix shell pipes is used, but without the overhead
+of the in/out conversion through the actual pipes or of running multiple instances of CE interpreter.
+[ * https://en.wikipedia.org/wiki/Method_chaining ]
 
-In order to avoid the overhead of operating system's pipes (and running multiple instances of CE interpreter)
-we shall use CLI format in "prefix notation" (verb is followed by its parameters "virtually piped" into
-another verb followed by its parameters, etc):
+Each CE command is a "chain" of simple individual CE calls (A -> B -> C -> D).
+Similar to Unix shell pipes, each individual CE call takes some input from the previous CE call
+and passes some of its output to the next CE call. What gets passed between the calls is a "dynamic entry",
+which serves as a source of code and parameters for the next CE call.
+
+Naming all parameters
+---------------------
+In order to keep the CLI and the parser simple, for each individual CE call we employ "infix notation",
+where each "verb" (method name) is preceded by "tweaks" (on-the-fly modifications to the "current object")
+and followed by extra parameters for this call:
 
     ce --meta_optionX=... --meta_optionY=... --meta_optionZ=...
-       verb1 --param1a=... --param1b=... \
-       verb2 --param2a=... \
-       verb3 --param3a=... --param3b=...
+       .scalarP=... .listQ=+tail verb1 --param1a=... --param1b=... \
+       .listR+=head              verb2 --param2a=... \
+       .dictS.keyT=valueU        verb3 --param3a=... --param3b=...
 
-This format is easy to parse, provided all parameters are prefixed with "--" .
+Naturally, both "pre"-tweaks and "post"-parameters may be missing, depending on specific verbs or context.
 
+This format is easy to parse, since all tweaks naturally start with a "." (standing for the root of the structure)
+and provided all extra parameters are prefixed with "--" .
 
+Ordering obligatory parameters, naming the optional ones
+--------------------------------------------------------
 Some verbs can have obligatory parameters, which allows us to skip the names of the obligatory parameters
 provided the correct order of them is kept:
 
     ce --meta_optionX=... --meta_optionY=... --meta_optionZ=...
-       verb1 oblig1a --option1b=... --option1c=... \
-       verb2 --option2a=... \
-       verb3 oblig3a oblig3b
+       .tweakP .tweakQ verb1 oblig1a --option1b=... --option1c=... \
+                       verb2 --option2a=... \
+       .tweakR         verb3 oblig3a oblig3b
 
 This format is still easy to parse, provided we have a quick access to every method's signature.
 
 
+Simple two-step examples
+------------------------
 In the most typical 2-step linked pipeline scenario an entry has to be found/resolved first,
 and then a method be called on the result(s).
 
@@ -37,9 +52,9 @@ and then a method be called on the result(s).
         ce find1 --query=env,model,tflite,resnet \
            tabulate --fields=location
 
-Note 1. find1() or findN() is a method central to the whole CE system. It searches for entries
-        based on tags and attributes. The difference between them is how many results they are
-        expected to return (1 vs many).
+Note 1. find1/findN() is a method central to the whole CE system. It searches for entries
+        based on tags and attributes. The difference between the two versions is
+        how many results they are expected to return (1 vs many).
 
 Note 2. The object that is passed through the "virtual pipe" between the verbs is a CE entry,
         lazily loaded into an internal representation.
@@ -60,60 +75,60 @@ A resolution may return multiple entries. The following example iterates through
         ce findN env,model,onnx,image-classification \
            tabulate data_uoa,name,version,tags --header! --format=...
 
-
+An example with tweaks
+----------------------
 Since we pass an entry between verbs, we might as well make some on-the-fly changes, and even store the result:
 
     # On-the-spot editing example. Load an entry, make some in-memory changes to its meta data, then store under a different name.
+    # The "post"-parameters are not properties of the object, but rather of the container collection
         ce find1 env,model,model_type=tflite \
-           tweak --param.x=15 --param.y=20 --meta.z=pqr \
-           save --new_name=... --new_collection=...     # these are not properties of the object, but rather of the container collection
+           .param.x=15 .param.y=20 .meta.z=pqr  save  --new_name=... --new_collection=...
 
-Note 1. tweak() is a universal method that allows to edit different types of data according to their nature
+Note 1. Tweaking allows to edit different types of data according to their nature
         ( override scalars, push/unshift/seek-and-remove arrays, add or remove dictionary entries, etc).
 
 Note 2. save() by default stores changes in the original entry, but if --new_name or --new_collection is given, can make an (edited) copy.
 
 
-There are also other ways to start the flow.
-
+Other ways to start the flow
+----------------------------
 Finding an entry using its name (way faster than using tags/attribs query, but less portable):
 
         ce from python-package-tensorflow-1.12 \
            install
 
         ce from python-package-tensorflow-1.12 \
-           tweak --version=1.13 --tags-=v1.12 --tags=+v1.13 \
-           save --name=python-package-tensorflow-1.13
+           .version=1.13 .tags-=v1.12 .tags=+v1.13  save  --name=python-package-tensorflow-1.13
 
 
-It is even possible to start from scratch (assuming an empty entry by default) :
-
+Starting from scratch (assuming an empty entry by default)
+----------------------------------------------------------
         ce save --name=new_empty_ce_entry_in_dynamic_collection
 
-which can, of course, be modified on the fly:
+This "default" empty entry can, of course, be modified on the fly
+-----------------------------------------------------------------
+        ce .alpha=15 .extlist=[png,git,jpg]  save  --name=new_ce_entry_in_dynamic_collection
 
-        ce tweak --alpha=15 --extlist=[png,git,jpg] \
-           save  --name=new_ce_entry_in_dynamic_collection
 
-Meta data can also be fed from an external file:
-
-            ce json_input --input_file=xyz.json | ce save --name=...
+Meta data can also be fed from an external file
+-----------------------------------------------
+            ce json_input --input_file=xyz.json  save  --name=...
 
 or from standard input (assuming JSON input) :
 
             jq ... | ce json_input save --name=...
 
 
-Multi-environment resolve examples:
-
+Multi-environment resolve examples
+----------------------------------
     # resolve() runs "find1" on each entry in deps{} , adding "env" type on the fly, and outputs env{} , merged in the correct order
         ce from env \
-           resolve --deps.lib.query=lib,tflite --deps.model.query=model,tflite --deps.images.query=preprocessed,imagenet \
+           .deps.lib.query=lib,tflite .deps.model.query=model,tflite .deps.images.query=preprocessed,imagenet  resolve \
            json_output
 
     # M-to-1 resolution. Equivalent of 'ck virtual env --tag_groups="lib,tflite model,tflite preprocessed,imagenet' :
         ce from env \
-           resolve --deps=+{query=lib,tflite} --deps=+{query=model,tflite} --deps=+{query=preprocessed,imagenet} \
+           .deps=+{query=lib,tflite} .deps=+{query=model,tflite} .deps=+{query=preprocessed,imagenet}  resolve \
            shell --cmd=...
 
 
@@ -124,6 +139,8 @@ Multi-environment resolve examples:
     # Test resolve() for a particular program (assumes "program" inherits from "env" - or at least from "resolvable" interface):
         ce find1 program,image-classification,tf,cpp \
             resolve
+
+Note: resolve() is a method of env , so we either have to "from" this entry, or "find1" a descendant of it.
 
 
 CLI user-facing commands:
@@ -140,9 +157,6 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
     save [name] [mid_path] [collection=dynamic]             1->1    # update or store a new entry
     detach                                                  1->1    # removes an entry from its collection, but passes it on so it can be stored elsewhere
 
-(on-the-fly editing)
-    tweak                                                   1->1    # change any aspects of the "current/this" entry
-
 (input/output)
     json_input [input_file]                                 1->1    # load an entry from STDIN or JSON file
     json_output [output_file]                               N->1    # output JSON to STDOUT or a file
@@ -152,7 +166,7 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
     resolve [deps] [collection=dynamic]                     1->1    # uniquely resolve given deps (defined either in an entry or from cli)
     shell [cmd]                                             1->1    # run shell interactively or a given command in it. Consume environment generated by resolve()
 
-(repo)
+(git repo)
     pull <url> <name>                                       1->1    # create a new local collection by cloning a git repo, or pull if it already exists
 
 (env/downloadable/soft/package)
@@ -165,6 +179,9 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
                                                                     # This "compiled" entry adds code, but inherits the rest from the "source" entry (so is not designed to work without it)
     run [repetitions=1]                                     1->1    # runs and creates a "running report" structure, suitable for recording as an experiment
 
+
+Current directory as an entry
+-----------------------------
 To avoid unpredictable behaviour, but still support the concept of "current dir as an entry",
 this functionality has to be explicitly required:
     ce from . install
@@ -176,47 +193,37 @@ The pattern above can also be extended to any path, not necessarily just ".",
 and not even necessarily absolute.
 
 
-Moving entries around:
+Moving entries around
+---------------------
     ce find1 model,tflite,resnet \
         detach \                                                    # removes entry from dynamic collection, but does not delete it
         save --collection=ce_inference --rel_path=models/tflite     # assume --name is kept even when original collection has been forgotten
 
 Bulk-editing of entries (and storing as modified copies):
     ce findN model,model_type=tflite,channel_order=nhwc \
-        tweak .propertyX=.propertyZ .tags=+",modified"
-        save --name=+"_modified"
+        .propertyX=.propertyZ .tags=+",modified"  save  --name=+"_modified"
 
 
 Recording a particular program run:
     ce from program-image-classification-tf-py \
-        tweak .deps.model.query=+",resnet" .runtime_env.CK_BATCH_COUNT=20 \
-        run --repetitions=10 \
-        tweak .model_type=tf .batches=20 .tags=+resnet \
-        save --name=experiment-tf-batch.20
+        .deps.model.query=+",resnet" .runtime_env.CK_BATCH_COUNT=20  run  --repetitions=10 \
+        .model_type=tf .batches=20 .tags=+resnet  save  --name=experiment-tf-batch.20
 
 Compile and run:
     ce from program-image-classification-tflite-cpp \
-        tweak .build_deps.cmake.version=3.14 .build_deps.cpp.query=+clang \
-        compile \
+        .build_deps.cmake.version=3.14 .build_deps.cpp.query=+clang  compile  \
         save --name=compiled-program-image-classification-tflite-clang \
-        tweak .deps.model.query=+",resnet" .runtime_env.CK_BATCH_COUNT=10 \
-        run --repetitions=1 \
-        tweak .model_type=tflite .batches=10 .tags=+resnet \
-        save --name=experiment-tflite-clang-resnet-batches.10-reps.1
+        .deps.model.query=+",resnet" .runtime_env.CK_BATCH_COUNT=10  run  --repetitions=1 \
+        .model_type=tflite .batches=10 .tags=+resnet  save  --name=experiment-tflite-clang-resnet-batches.10-reps.1
 
 Running it again:
     ce from compiled-program-image-classification-tflite-clang \
-        tweak .deps.model.query=+",mobilenet" .runtime_env.CK_BATCH_COUNT=10 \
-        run --repetitions=5 \
-        tweak .model_type=tflite .batches=100 .tags=+mobilenet \
-        save --name=experiment-tflite-clang-mobilenet-batches.100-reps.5
+        .deps.model.query=+",mobilenet" .runtime_env.CK_BATCH_COUNT=10  run  --repetitions=5 \
+        .model_type=tflite .batches=100 .tags=+mobilenet  save  --name=experiment-tflite-clang-mobilenet-batches.100-reps.5
 
 Cross-compile and run:
     ce from program-image-classification-tflite-cpp \
-        tweak .build_deps.cmake.version=3.14 .build_deps.cpp.query=+clang \
-        compile --target_os=android24-arm8a \
+        .build_deps.cmake.version=3.14 .build_deps.cpp.query=+clang  compile  --target_os=android24-arm8a \
         save --name=compiled-program-image-classification-tflite-clang-for-android24 \
-        tweak .deps.model.query=+",mobilenet" .runtime_env.CK_BATCH_COUNT=15 \
-        run --device=my_phone \
-        tweak .model_type=tflite .batches=15 .tags=+mobilenet \
-        save --name=experiment-tflite-clang-mobilenet-batches.15-on.my_phone
+        .deps.model.query=+",mobilenet" .runtime_env.CK_BATCH_COUNT=15  run  --device=my_phone \
+        .model_type=tflite .batches=15 .tags=+mobilenet  save  --name=experiment-tflite-clang-mobilenet-batches.15-on.my_phone
