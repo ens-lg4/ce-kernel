@@ -147,11 +147,11 @@ CLI user-facing commands:
 =========================
 
 There is an opportunity to tune the whole CE call by sticking "meta level" options before the first verb:
-    ce --core_collection=... --dynamic_collection=... load package-X install
+    ce --core_collection=... --dynamic_collection=...  from  package-X install
     ce --version
 
 (collection access)
-    load/from/with/using <entry_name> [collection=dynamic]  1->1    # finds (and lazily loads) an entry by name
+    from <entry_name_or_path> [collection=dynamic]          1->1    # locates (and lazily loads) an entry by name or path
     find1 <query> [collection=dynamic]                      1->1    # finds an entry using query
     findN <query> [collection=dynamic]                      1->N    # finds multiple entries using query
     save [name] [mid_path] [collection=dynamic]             1->1    # update or store a new entry
