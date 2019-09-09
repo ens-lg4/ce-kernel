@@ -151,8 +151,10 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
     ce --version
 
 (collection access)
-    from <entry_name_or_path> [collection=dynamic]          1->1    # locates (and lazily loads) an entry by name or path
-    find1 <query> [collection=dynamic]                      1->1    # finds an entry using query
+    bypath <entry_path>                                     1->1    # lazily loads an entry by path
+    byname <entry_name> [collection=dynamic]                1->1    # looks up (and lazily loads) an entry by name
+    find1 <query> [collection=dynamic]                      1->1    # finds (and lazily loads) an entry by query
+    from <entry_path/entry_name/query> [collection=dynamic] 1->1    # syntactic sugar to try bypath(), then byname(), then find1()
     findN <query> [collection=dynamic]                      1->N    # finds multiple entries using query
     save [name] [mid_path] [collection=dynamic]             1->1    # update or store a new entry
     detach                                                  1->1    # removes an entry from its collection, but passes it on so it can be stored elsewhere
