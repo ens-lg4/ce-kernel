@@ -207,6 +207,7 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
 
 (env/downloadable/soft/package)
     download <url> [tags] [attribs]                         1->1    # download an external file (defined by URL) and store it as a local entry
+    fs_find [patterns_to_match] [search_path]               1->N    # the internal mechanism behind finding matching files for software detection
     detect [full_path] [search_path]                        1->1    # find a given pre-installed package and set up an environment entry pointing at it
     install [package_version] [package_options]             1->1    # install/build a package in a new entry
 
@@ -268,10 +269,20 @@ Cross-compile and run:
 Unresolved questions:
 ===================================================================
 *) working with 1->N and N->1 methods, passing results around
-*) Introduce a generic manual selection method for N->1 scenarios?
+*) Introduce a generic manual selection method to enforce N->1 transformation?
 *) Searching for entries by "class":  ISA(env)
 *) Searching for entries by matching name against a wildcard (or any scalar field against a wildcard? or any scalar field against a generic pattern?)
-*) What should a simple user method ( fibonacci() or factorial() ) return, and how to wrap it universally?
 *) Can we bootstrap without dynamic_collection ?
 *) Storing final/intermediate results we have not been asked to store? (but potentially took long to produce)
 *) Intermediate data format into which the CLI parser can parse (esp. editing), and which can be independently generated and consumed by "task runner"
+*) Should "proper parameters" (that will parameterize future calls) be stored separately from entry's "meta parameters" (such as parent_name[s])?
+    What is the danger in keeping everything in one big pile?
+*) A good CLI API to the "ephemeral" parameters of entries that are not stored (path, name, ...) but may still have to be referred to?
+
+*) What should a simple user method ( fibonacci() or factorial() ) return, and how to wrap it universally?
+    We can work with "non-conforming" functions and just call them using our reparam infrastructure.
+    But what would be the best wrapping strategy?
+        If it returns a dictionary - leave it alone, pretend that this dictionary is the "output entry" which can be recorded or worked with otherwise.
+        If it returns something else - wrap it into a dictionary:
+            { 'return_value': 120, 'method_called': 'factorial', 'effective_call_parameters': {'n': 5} }
+        Can we somehow signal from CLI to wrap output even if a dictionary is expected in return?
