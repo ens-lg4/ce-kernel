@@ -14,8 +14,8 @@ Similar to Unix shell pipes, each individual CE call takes some input from the p
 and passes some of its output to the next CE call. What gets passed between the calls is a "dynamic entry",
 which serves as a source of code and parameters for the next CE call.
 
-Naming all parameters
----------------------
+Naming all parameters, both obligatory and optional
+---------------------------------------------------
 In order to keep the CLI and the parser simple, for each individual CE call we employ "infix notation",
 where each "verb" (method name) is preceded by "tweaks" (on-the-fly modifications to the "current object")
 and followed by extra parameters for this call:
@@ -41,6 +41,40 @@ provided the correct order of them is kept:
        .tweakR         verb3 oblig3a oblig3b
 
 This format is still easy to parse, provided we have a quick access to every method's signature.
+
+
+Different ways of defining parameters - explanation
+---------------------------------------------------
+It depends on the verb which parameters it consumes. Assume "cmdX" consumes "alpha", "beta", "gamma" and "delta".
+For "beta" and "delta" we have a default value in the dynamic entry.
+Parameter "alpha" is obligatory, so we have to provide it anyway.
+We also want to define new values for "gamma" and "delta", but we are happy with the default for "beta".
+Because each parameter "alpha", "gamma" and "delta" can be defined on either side of the verb,
+there are 8 ways to make it work:
+
+    ce ... \
+        cmdX --alpha=... --gamma=... --delta=...
+
+    ce ... \
+        .alpha=...  cmdX  --gamma=... --delta=...
+
+    ...
+    etc.
+
+The difference here is what changes get passed along the chain.
+For the parameters that you tweak on the left, the new values will make their way into the entry,
+and may influence further calls along the chain,
+while the parameters that you set on the right are for this particular call only, and will not get
+automatically inherited.
+
+
+Parameter precedence rule
+-------------------------
+What is the same parameter is defined in several places?
+    paramX: valueA  # in the dynamic object
+    .paramX=valueB  # in the tweaks on the left
+    --paramX=valueC # in the call parameters on the right
+The rule is valueC has highest precedence, followed by valueB, followed by valueA.
 
 
 Simple two-step examples
@@ -229,3 +263,15 @@ Cross-compile and run:
         save --name=compiled-program-image-classification-tflite-clang-for-android24 \
         .deps.model.query=+",mobilenet" .runtime_env.CK_BATCH_COUNT=15  run  --device=my_phone \
         .model_type=tflite .batches=15 .tags=+mobilenet  save  --name=experiment-tflite-clang-mobilenet-batches.15-on.my_phone
+
+
+Unresolved questions:
+===================================================================
+*) working with 1->N and N->1 methods, passing results around
+*) Introduce a generic manual selection method for N->1 scenarios?
+*) Searching for entries by "class":  ISA(env)
+*) Searching for entries by matching name against a wildcard (or any scalar field against a wildcard? or any scalar field against a generic pattern?)
+*) What should a simple user method ( fibonacci() or factorial() ) return, and how to wrap it universally?
+*) Can we bootstrap without dynamic_collection ?
+*) Storing final/intermediate results we have not been asked to store? (but potentially took long to produce)
+*) Intermediate data format into which the CLI parser can parse (esp. editing), and which can be independently generated and consumed by "task runner"
