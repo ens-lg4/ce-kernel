@@ -105,7 +105,7 @@ With the same tools it is very easy to clone an entry, make changes to it, and s
 ```
 	ce bypath alice_entry \
 	   tweak .name=Bob .country=Belize \
-	   save --name=bob_entry
+	   save --entry_name=bob_entry
 ```
 
 

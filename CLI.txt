@@ -116,12 +116,13 @@ Since we pass an entry between verbs, we might as well make some on-the-fly chan
     # On-the-spot editing example. Load an entry, make some in-memory changes to its meta data, then store under a different name.
     # The "post"-parameters are not properties of the object, but rather of the container collection
         ce find1 env,model,model_type=tflite \
-           .param.x=15 .param.y=20 .meta.z=pqr  save  --new_name=... --new_collection=...
+           .param.x=15 .param.y=20 .meta.z=pqr  save  --entry_name=... --collection=...
 
 Note 1. Tweaking allows to edit different types of data according to their nature
         ( override scalars, push/unshift/seek-and-remove arrays, add or remove dictionary entries, etc).
 
-Note 2. save() by default stores changes in the original entry, but if --new_name or --new_collection is given, can make an (edited) copy.
+Note 2. save() by default stores changes in the original entry, but if --entry_name or --collection are given and differ from the object,
+can make an (edited) copy.
 
 
 Other ways to start the flow
@@ -132,25 +133,25 @@ Finding an entry using its name (way faster than using tags/attribs query, but l
            install
 
         ce from python-package-tensorflow-1.12 \
-           .version=1.13 .tags-=v1.12 .tags=+v1.13  save  --name=python-package-tensorflow-1.13
+           .version=1.13 .tags-=v1.12 .tags=+v1.13  save  --entry_name=python-package-tensorflow-1.13
 
 
 Starting from scratch (assuming an empty entry by default)
 ----------------------------------------------------------
-        ce save --name=new_empty_ce_entry_in_dynamic_collection
+        ce save --entry_name=new_empty_ce_entry_in_dynamic_collection
 
 This "default" empty entry can, of course, be modified on the fly
 -----------------------------------------------------------------
-        ce .alpha=15 .extlist=[png,git,jpg]  save  --name=new_ce_entry_in_dynamic_collection
+        ce .alpha=15 .extlist=[png,git,jpg]  save  --entry_name=new_ce_entry_in_dynamic_collection
 
 
 Meta data can also be fed from an external file
 -----------------------------------------------
-            ce json_input --input_file=xyz.json  save  --name=...
+            ce json_input --input_file=xyz.json  save  --entry_name=...
 
 or from standard input (assuming JSON input) :
 
-            jq ... | ce json_input save --name=...
+            jq ... | ce json_input save --entry_name=...
 
 
 Multi-environment resolve examples
@@ -190,12 +191,12 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
     find1 <query> [collection=working_collection]                       1->1    # finds (and lazily loads) an entry by query
     from <entry_path/entry_name/query> [collection=working_collection]  1->1    # syntactic sugar to try bypath(), then byname(), then find1()
     findN <query> [collection=working_collection]                       1->N    # finds multiple entries using query
-    save [name] [mid_path] [collection=working_collection]              1->1    # update or store a new entry
+    save [entry_name=new_name] [rel_path] [collection=collection_name]  1->1    # update or store a new entry (skips hidden fields that start with '_')
     detach                                                              1->1    # removes an entry from its collection, but passes it on so it can be stored elsewhere
 
 (input/output)
     json_input [input_file]                                 1->1    # load an entry from STDIN or JSON file
-    json_output [output_file]                               N->1    # output JSON to STDOUT or a file
+    json_output [output_file] [all=False]                   N->1    # output JSON to STDOUT or a file. --all=True also outputs hidden fields that start with '_' .
     tabulate <fields> [separator] [format]                  N->1    # output in tabular format
 
 (env/resolvable)
@@ -223,7 +224,7 @@ To avoid unpredictable behaviour, but still support the concept of "current dir 
 this functionality has to be explicitly required:
     ce from . install
     ce from . detect
-Note that entries loaded this way do not know to which collection they belong.
+Note that entries loaded this way do not know to which collection they belong (are "detached").
 So collection-related operations with the "cwd entry" are discouraged.
 
 The pattern above can also be extended to any path, not necessarily just ".",
@@ -238,33 +239,33 @@ Moving entries around
 
 Bulk-editing of entries (and storing as modified copies):
     ce findN model,model_type=tflite,channel_order=nhwc \
-        .propertyX=.propertyZ .tags=+",modified"  save  --name=+"_modified"
+        .propertyX=.propertyZ .tags=+",modified"  save  --entry_name=+"_modified"
 
 
 Recording a particular program run:
     ce from program-image-classification-tf-py --collection=alt_collection \
         .deps.model.query=+",resnet" .runtime_env.CK_BATCH_COUNT=20  run  --repetitions=10 \
-        .model_type=tf .batches=20 .tags=+resnet  save  --name=experiment-tf-batch.20
+        .model_type=tf .batches=20 .tags=+resnet  save  --entry_name=experiment-tf-batch.20
 
 Compile and run:
     ce from program-image-classification-tflite-cpp \
         .build_deps.cmake.version=3.14 .build_deps.cpp.query=+clang  compile  \
-        save --name=compiled-program-image-classification-tflite-clang \
+        save --entry_name=compiled-program-image-classification-tflite-clang \
         .deps.model.query=+",resnet" .runtime_env.CK_BATCH_COUNT=10  run  --repetitions=1 \
         .model_type=tflite .batches=10 .tags=+resnet \
-        save  --name=experiment-tflite-clang-resnet-batches.10-reps.1
+        save  --entry_name=experiment-tflite-clang-resnet-batches.10-reps.1
 
 Running it again:
     ce from compiled-program-image-classification-tflite-clang \
         .deps.model.query=+",mobilenet" .runtime_env.CK_BATCH_COUNT=10  run  --repetitions=5 \
-        .model_type=tflite .batches=100 .tags=+mobilenet  save  --name=experiment-tflite-clang-mobilenet-batches.100-reps.5
+        .model_type=tflite .batches=100 .tags=+mobilenet  save  --entry_name=experiment-tflite-clang-mobilenet-batches.100-reps.5
 
 Cross-compile and run:
     ce from program-image-classification-tflite-cpp \
         .build_deps.cmake.version=3.14 .build_deps.cpp.query=+clang  compile  --target_os=android24-arm8a \
-        save --name=compiled-program-image-classification-tflite-clang-for-android24 \
+        save --entry_name=compiled-program-image-classification-tflite-clang-for-android24 \
         .deps.model.query=+",mobilenet" .runtime_env.CK_BATCH_COUNT=15  run  --device=my_phone \
-        .model_type=tflite .batches=15 .tags=+mobilenet  save  --name=experiment-tflite-clang-mobilenet-batches.15-on.my_phone
+        .model_type=tflite .batches=15 .tags=+mobilenet  save  --entry_name=experiment-tflite-clang-mobilenet-batches.15-on.my_phone
 
 
 Unresolved questions:
@@ -289,3 +290,5 @@ Unresolved questions:
         If it returns something else - wrap it into a dictionary:
             { 'return_value': 120, 'method_called': 'factorial', 'effective_call_parameters': {'n': 5} }
         Can we somehow signal from CLI to wrap output even if a dictionary is expected in return?
+
+*) Using "tweak" as a no-op verb would allow supporting either infix or prefix CLI notation.
