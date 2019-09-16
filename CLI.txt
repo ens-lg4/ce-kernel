@@ -292,21 +292,9 @@ Unresolved questions:
 
 *) Using "tweak" as a no-op verb would allow supporting either infix or prefix CLI notation.
 
-*) Intermediate data format into which the CLI parser can parse (esp. editing), and which can be independently generated and consumed by "task runner":
-    This format (JSON or Python) does not know about "obligatory parameters", so every parameter will have to have a key and a value.
-    TODO: also think about tweak input format:
+*) Tweak input format?
 
-    alice_entry = ce.call( working_collection, {
-        "method": "find1",
-        "query": "name=Alice,country=Argentina"
-    } )
-
-    bob_entry = ce.call( {"name": "Bob", "country": "Bangladesh", "family": "Keymaker"}, {
-        "method": "save",
-        "collection": "working_collection"
-    } )
-
-    tf1_13_package_entry = ce.pipe( working_collection, [
+    tf1_13_package_entry = working_collection.pipe( [
         { "method": "from",
           "name": "python-package-tensorflow-1.12"
         },
