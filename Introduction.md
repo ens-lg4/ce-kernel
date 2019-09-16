@@ -52,7 +52,7 @@ Data-containing entry
 
 Let's now add data to the same entry:
 ```
-	echo '{ "name": "Alice", "family": "Keymaker", "country": "Argentina" }' > alice_entry/own_parameters.json
+	echo '{ "name": "Alice", "family": "Keymaker", "country": "Argentina", "female": True }' > alice_entry/own_parameters.json
 ```
 
 Again, we can access this data straight away using the existing infrastructure:

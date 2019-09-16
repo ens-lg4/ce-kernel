@@ -30,7 +30,7 @@ working_collection = ce.from_path( working_collection_path )
 
 # calling methods on objects
 alice_entry = working_collection.find1({
-    "query": "name=Alice,country=Argentina"
+    "query": "name=Alice,country=Argentina,female"
 })
 
 # accessing fields of an object (raises exception if missing)
@@ -44,7 +44,7 @@ bob_entry = ce.from_dict( {"name": "Bob", "country": "Bangladesh", "family": "Ke
 
 # storing a dynamically-created object
 bob_entry.save({
-    "name": "bob_entry",
+    "entry_name": "bob_entry",
     "collection": working_collection_path
 })
 
