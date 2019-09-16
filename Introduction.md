@@ -137,7 +137,7 @@ Storing an entry in a collection
 --------------------------------
 ```
 	ce bypath alice_entry \
-	   save --collection=working_collection
+	   save --collection=~/working_collection
 ```
 As the result, the whole entry will be recursively copied into *working_collection* directory,
 and also registered in the *working_collection* index.

@@ -191,7 +191,7 @@ There is an opportunity to tune the whole CE call by sticking "meta level" optio
     find1 <query> [collection=working_collection]                       1->1    # finds (and lazily loads) an entry by query
     from <entry_path/entry_name/query> [collection=working_collection]  1->1    # syntactic sugar to try bypath(), then byname(), then find1()
     findN <query> [collection=working_collection]                       1->N    # finds multiple entries using query
-    save [entry_name=new_name] [rel_path] [collection=collection_name]  1->1    # update or store a new entry (skips hidden fields that start with '_')
+    save [entry_name=new_name] [rel_path] [collection=collection_path]  1->1    # update or store a new entry (skips hidden fields that start with '_')
     detach                                                              1->1    # removes an entry from its collection, but passes it on so it can be stored elsewhere
 
 (input/output)
@@ -234,8 +234,8 @@ and not even necessarily absolute.
 Moving entries around
 ---------------------
     ce find1 model,tflite,resnet \
-        detach \                                                    # removes entry from working_collection, but does not delete it
-        save --collection=ce_inference --rel_path=models/tflite     # assume --name is kept even when original collection has been forgotten
+        detach \                                                                        # removes entry from working_collection, but does not delete it
+        save --collection=~/working_collection/ce_inference --rel_path=models/tflite    # assume --name is kept even when original collection has been forgotten
 
 Bulk-editing of entries (and storing as modified copies):
     ce findN model,model_type=tflite,channel_order=nhwc \
