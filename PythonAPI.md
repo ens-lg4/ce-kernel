@@ -11,7 +11,7 @@ Summary of methods
 
     object = ce.from_path()         - load a CE memory object from a given fs path
 
-    object["field"]                 - hard access to a field (assumes it has to exist)
+    object["field"]                 - hard access to a field (assumes it exists or sets it)
 
     object.get("field")             - soft access to a field (returns None if did not exist)
 
