@@ -64,30 +64,33 @@ default_kernel_instance = MicroKernel()
 
 
 class Entry:
-    def __new__(cls, entry_path, entry_name=None, parent_entry=None, kernel=default_kernel_instance):
+    def __new__(cls, entry_path=None, own_parameters=None, kernel=default_kernel_instance):
 
-        entry_name = entry_name or os.path.basename(entry_path)
+        entry_name = None
+        if entry_path:
+            entry_name = os.path.basename(entry_path)
 
-        cached_entry = kernel.get_cached(entry_name)
-        if cached_entry:
-            return cached_entry
-        else:
-            self = super(Entry, cls).__new__(cls)
+            cached_entry = kernel.get_cached(entry_name)
+            if cached_entry:
+                return cached_entry
 
-            print("__new__ Entry({})".format(entry_path))
-            self.entry_path     = entry_path
-            self.entry_name     = entry_name
-            self.parent_entry   = parent_entry
-            self.kernel         = kernel
+        self = super(Entry, cls).__new__(cls)
 
-            ## Placeholders for lazy loading:
-            #
-            self.module_object  = None
-            self.own_parameters = None
+        print("__new__ Entry({})".format(entry_path))
+        self.entry_path     = entry_path
+        self.kernel         = kernel
+        self.own_parameters = own_parameters
 
-            kernel.encache_entry( self.entry_name, self )
+        ## Placeholders for lazy loading:
+        #
 
-            return self
+        self.parent_entry   = None
+        self.module_object  = None
+
+        if entry_name:
+            kernel.encache_entry( entry_name, self )
+
+        return self
 
 
     def get_path(self, filename=None):
@@ -98,10 +101,7 @@ class Entry:
 
 
     def get_name(self):
-        if not self.entry_name:
-            self.entry_name = os.path.basename(self.entry_path)
-
-        return self.entry_name
+        return self.entry_path and os.path.basename(self.entry_path)
 
 
     def get_module_object(self):
@@ -109,6 +109,14 @@ class Entry:
             self.module_object = utils.get_entrys_python_module(self.entry_path, code_container_name=self.kernel.code_container_name) or False
 
         return self.module_object
+
+
+    def parameters_loaded(self):
+        if self.own_parameters==None:       # lazy-loading condition
+            parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
+            self.own_parameters, _ = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
+
+        return self.own_parameters
 
 
     def parent_loaded(self):
@@ -120,14 +128,6 @@ class Entry:
                 self.parent_entry = False
 
         return self.parent_entry
-
-
-    def parameters_loaded(self):
-        if self.own_parameters==None:       # lazy-loading condition
-            parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
-            self.own_parameters, _ = utils.quietly_load_json_config( self.get_path(parameters_rel_path), parameters_struct_path )
-
-        return self.own_parameters
 
 
     def get_param(self, param_name):
@@ -198,6 +198,10 @@ if __name__ == '__main__':
     print("Kernel version = {}".format(default_kernel_instance.get_version()))
 
     print(core_repository_path)
+
+    uncached_entry = Entry(own_parameters={'son': 'Lenny', 'daughter': 'Isabella'})
+    print("son: {}, daughter: {}".format(uncached_entry.get_param('son'), uncached_entry.get_param('daughter')))
+
     foo_entry = Entry(core_collection_path + '/foo_entry')
 
     p, q = foo_entry.call('foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
