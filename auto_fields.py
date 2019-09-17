@@ -9,24 +9,29 @@
 	To be decided...
 """
 
+import utils
+
 class Entry(object):
-	def __init__(self, own_params={}, own_methods={}):
+	def __init__(self, own_params={}, own_methods_dir=None):
 		super(self.__class__, self).__setattr__('own_params', own_params)
-		super(self.__class__, self).__setattr__('own_methods', own_methods)
+
+		if own_methods_dir!=None:
+			own_methods_module = utils.get_entrys_python_module(own_methods_dir, code_container_name='own_methods')
+		else:
+			own_methods_module = False
+		super(self.__class__, self).__setattr__('own_methods', own_methods_module)
 	
-		print( "Creating an Entry({}, {})".format(own_params, own_methods) )
+		print( "Creating an Entry({}, {})".format(own_params, own_methods_dir) )
+
 
 	def __getattr__(self, name):
-		try:
-			return self.own_methods[name]
-		except KeyError:
-			raise AttributeError(name)
+		return getattr(self.own_methods, name)
 
 	def __setattr__(self, name, value):
-		self.own_methods[name] = value
+		setattr(self.own_methods, name, value)
 
 	def can(self, name):
-		return name in self.own_methods
+		return self.own_methods and hasattr(self.own_methods, name)
 
 	def __getitem__(self, name):
 		return self.own_params[name]
@@ -43,27 +48,28 @@ class Entry(object):
 
 if __name__ == '__main__':
 
-	foo = Entry( own_methods={
-		'hi': lambda x='Mum' : "Hello, " + x
-	})
+
+	foo = Entry( own_methods_dir = '.' )
 
 	print(foo.can('hi'))
 	print(foo.hi('Lenny'))
-	print("")
 
+	print("")
 	print(foo.can('bye'))
 	try:
 		foo.bye()
 	except AttributeError as e:
 		print("Missing method for {}()".format(e))
-	print("")
 
+	print("")
 	foo.bye = lambda x='Dad' : "Goodbye, " + x
 	print(foo.can('bye'))
 	print(foo.bye())
 
 	print('-' * 40)
 	bar = Entry({'erste': 10, 'dritte': 30})
+
+	print(bar.can('cancan'))
 
 	print(bar['erste'])
 	zw = bar.get('zweite', 'default-for-zweite')
