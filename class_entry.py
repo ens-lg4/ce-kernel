@@ -222,7 +222,6 @@ if __name__ == '__main__':
     dir_path    = foo_entry.get_path()
     file_path   = foo_entry.get_path('abracadabra.txt')
     print("dir_path = {}, file_path = {}\n".format(dir_path, file_path))
-    print("State of weather : {}\n".format(foo_entry.get_metas().get('weather')))
 
     bar_entry = Entry(core_collection_path + '/bar_entry')
 
