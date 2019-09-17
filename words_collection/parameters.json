@@ -1,4 +1,5 @@
 {
+    "parent_entry_name" : "base_collection",
     "name_2_path" : {
         "english" : "dictionaries/english_dictionary",
         "latin" :   "dictionaries/latin_dictionary"

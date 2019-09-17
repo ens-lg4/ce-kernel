@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.2'   # Try not to forget to update it!
+__version__ = '0.0.3'   # Try not to forget to update it!
 
 import os
 import utils
@@ -13,9 +13,8 @@ user_collection_path = os.path.join(core_repository_path, 'words_collection')
 
 
 class MicroKernel:
-    def __init__(self, parameters_location=('parameters.json',[]), meta_location=('meta.json',[]), code_container_name='python_code'):
+    def __init__(self, parameters_location=('parameters.json',[]), code_container_name='python_code'):
         self.parameters_location    = parameters_location
-        self.meta_location          = meta_location
         self.code_container_name    = code_container_name
         self.entry_cache            = {}
 
@@ -84,7 +83,6 @@ class Entry:
             ## Placeholders for lazy loading:
             #
             self.module_object  = None
-            self.meta           = None
             self.own_parameters = None
 
             kernel.encache_entry( self.entry_name, self )
@@ -115,21 +113,13 @@ class Entry:
 
     def parent_loaded(self):
         if self.parent_entry==None:     # lazy-loading condition
-            parent_entry_name = self.get_metas().get('parent_entry_name', None)
+            parent_entry_name = self.parameters_loaded().get('parent_entry_name', None)
             if parent_entry_name:
                 self.parent_entry = self.kernel.find_Entry(parent_entry_name)   # in case we get a False, it should stick and not cause another find_Entry() in future
             else:
                 self.parent_entry = False
 
         return self.parent_entry
-
-
-    def get_metas(self):
-        if self.meta==None:             # lazy-loading condition
-            meta_rel_path, meta_struct_path = self.kernel.meta_location
-            self.meta, _ = utils.quietly_load_json_config( self.get_path(meta_rel_path), meta_struct_path )
-
-        return self.meta
 
 
     def parameters_loaded(self):
@@ -252,7 +242,7 @@ if __name__ == '__main__':
     except NameError as e:
         print(str(e) + "\n")
 
-    ## direct inheritance from param_entry (via meta.parent_entry_name):
+    ## direct inheritance from param_entry (via parent_entry_name):
     #
     latin = default_kernel_instance.find_Entry('latin')
     print(latin.generate_merged_parameters())
