@@ -18,53 +18,64 @@ class Entry(object):
 
 	def __getattr__(self, name):
 		try:
-			return self.own_params[name]
+			return self.own_methods[name]
 		except KeyError:
-			try:
-				return self.own_methods[name]
-			except KeyError:
-				print("missing-value-or-method-for-"+name)
-				return None
+			raise AttributeError(name)
 
 	def __setattr__(self, name, value):
-		if callable(value):
-			self.own_methods[name] = value
-		else:
-			self.own_params[name] = value
+		self.own_methods[name] = value
+
+	def can(self, name):
+		return name in self.own_methods
 
 	def __getitem__(self, name):
-		try:
-			return self.own_params[name]
-		except KeyError:
-			return "missing-value-for-"+name
+		return self.own_params[name]
 
 	def __setitem__(self, name, value):
 		self.own_params[name] = value
 
+	def get(self, name, def_value=None):
+		try:
+			return self.own_params[name]
+		except KeyError:
+			return def_value
 
 
-foo = Entry({'alpha': 5}, {
-	'hi': lambda x='Mum' : "Hello, " + x
-})
+if __name__ == '__main__':
 
-print(foo['alpha'])
-print(foo.beta)
-print(foo.hi('Lenny'))
-print(foo.bye)
+	foo = Entry( own_methods={
+		'hi': lambda x='Mum' : "Hello, " + x
+	})
 
-foo.bye = lambda x='Dad' : "Goodbye, " + x
+	print(foo.can('hi'))
+	print(foo.hi('Lenny'))
+	print("")
 
-print(foo.bye())
+	print(foo.can('bye'))
+	try:
+		foo.bye()
+	except AttributeError as e:
+		print("Missing method for {}()".format(e))
+	print("")
 
+	foo.bye = lambda x='Dad' : "Goodbye, " + x
+	print(foo.can('bye'))
+	print(foo.bye())
 
-bar = Entry({'erste': 1, 'dritte': 3})
+	print('-' * 40)
+	bar = Entry({'erste': 10, 'dritte': 30})
 
-print(bar.erste)
-print(bar.zweite)
-print(bar.dritte)
+	print(bar['erste'])
+	zw = bar.get('zweite', 'default-for-zweite')
+	print(zw)
+	try:
+		zw = bar['zweite']
+	except KeyError as e:
+		print("Missing value for {}".format(e))
+	print(bar['dritte'])
 
-bar.zweite = 20
-bar['dritte'] = 30
+	bar['zweite'] = 200
+	bar['dritte'] = 300
 
-print(bar['zweite'])
-print(bar['dritte'])
+	print(bar['zweite'])
+	print(bar['dritte'])

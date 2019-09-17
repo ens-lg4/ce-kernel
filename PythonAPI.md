@@ -15,6 +15,8 @@ Summary of methods
 
     object.get("field")             - soft access to a field (returns None if did not exist)
 
+    object.can("verb")              - soft-checking that a method exists
+
     object.verb( { call-params })   - calling an object's method
 
     object.pipe( chain-of-calls )   - calling a chain of calls on the current object
