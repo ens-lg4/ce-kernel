@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.3'   # Try not to forget to update it!
+__version__ = '0.0.4'   # Try not to forget to update it!
 
 import os
 import utils
@@ -104,13 +104,6 @@ class Entry:
         return self.entry_path and os.path.basename(self.entry_path)
 
 
-    def get_module_object(self):
-        if self.module_object==None:    # lazy-loading condition
-            self.module_object = utils.get_entrys_python_module(self.entry_path, code_container_name=self.kernel.code_container_name) or False
-
-        return self.module_object
-
-
     def parameters_loaded(self):
         if self.own_parameters==None:       # lazy-loading condition
             parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
@@ -130,28 +123,26 @@ class Entry:
         return self.parent_entry
 
 
-    def get_param(self, param_name):
+    def __getitem__(self, param_name):
         own_parameters = self.parameters_loaded()
 
         if param_name in own_parameters:
             return own_parameters[param_name]
         elif self.parent_loaded():
-            return self.parent_entry.get_param(param_name)
+            return self.parent_entry[param_name]
         else:
             return None
 
 
-    def generate_merged_parameters(self):
-        own_parameters = self.parameters_loaded()
-
-        if self.parent_loaded():
-            return utils.merged_dictionaries(self.parent_entry.parameters_loaded(), own_parameters)
-        else:
-            return own_parameters
-
-
-    def set_param(self, param_name, param_value):
+    def __setitem__(self, param_name, param_value):
         self.parameters_loaded()[param_name] = param_value
+
+
+    def get_module_object(self):
+        if self.module_object==None:    # lazy-loading condition
+            self.module_object = utils.get_entrys_python_module(self.entry_path, code_container_name=self.kernel.code_container_name) or False
+
+        return self.module_object
 
 
     def reach_method(self, function_name, _ancestry_path=None):
@@ -172,6 +163,15 @@ class Entry:
                 raise NameError( "could not find the method '{}' along the ancestry path '{}'".format(function_name, ' --> '.join(_ancestry_path) ) )
 
         return function_object
+
+
+    def generate_merged_parameters(self):
+        own_parameters = self.parameters_loaded()
+
+        if self.parent_loaded():
+            return utils.merged_dictionaries(self.parent_entry.parameters_loaded(), own_parameters)
+        else:
+            return own_parameters
 
 
     def call(self, function_name, call_specific_params=None, entry_wide_params=None):
@@ -200,17 +200,17 @@ if __name__ == '__main__':
     print(core_repository_path)
 
     uncached_entry = Entry(own_parameters={'son': 'Lenny', 'daughter': 'Isabella'})
-    print("son: {}, daughter: {}".format(uncached_entry.get_param('son'), uncached_entry.get_param('daughter')))
+    print("Son: {}, Daughter: {}".format(uncached_entry['son'], uncached_entry['daughter']))
 
     foo_entry = Entry(core_collection_path + '/foo_entry')
 
     p, q = foo_entry.call('foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_foo = {}, Q_foo = {}\n".format(p,q))
 
-    foo_entry.set_param('fourth', 'vierte')
+    foo_entry['fourth'] = 'vierte'
 
-    foo2 = foo_entry.get_param('second')
-    foo4 = foo_entry.get_param('fourth')
+    foo2 = foo_entry['second']
+    foo4 = foo_entry['fourth']
     print("foo2 = {}, foo4 = {}\n".format(foo2, foo4))
 
     dir_path    = foo_entry.get_path()
