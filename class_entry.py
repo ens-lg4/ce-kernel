@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.5'   # Try not to forget to update it!
+__version__ = '0.0.6'   # Try not to forget to update it!
 
 import os
 import utils
@@ -9,14 +9,14 @@ import utils
 core_repository_path = os.path.dirname( os.path.realpath(__file__) )    # depends on relative position of THIS FILE in the repository
 base_collection_path = os.path.join(core_repository_path, 'core_collection', 'base_collection')
 core_collection_path = os.path.join(core_repository_path, 'core_collection')
-user_collection_path = os.path.join(core_repository_path, 'words_collection')
+working_collection_path = os.path.join(core_repository_path, 'working_collection')
 
 
 class MicroKernel:
     def __init__(self, parameters_location=('parameters.json',[]), code_container_name='python_code'):
         self.parameters_location    = parameters_location
         self.code_container_name    = code_container_name
-        self.collections_to_search  = None  # placeholder
+        self.entry_cache            = None
 
 
     def get_version(self):
@@ -27,31 +27,31 @@ class MicroKernel:
         return Entry(*args, **kwargs, kernel=self)
 
 
-    def search_collections(self):
-        if self.collections_to_search==None:       # lazy-loading is needed to delay execution
-            base_collection             = self.create_Entry( entry_path=base_collection_path)
-            core_collection             = self.create_Entry( entry_path=core_collection_path, parent_entry=base_collection)
-            self.working_collection     = self.create_Entry( entry_path=user_collection_path, parent_entry=base_collection)
-
-            self.collections_to_search  = [ self.working_collection, core_collection ]
-
-        print("Collections to search: {}".format(self.collections_to_search))
-        return self.collections_to_search
+    def preload_collections_if_needed(self):
+        if self.entry_cache==None:       # lazy-loading is needed to delay execution
+            base_collection     = self.create_Entry( entry_path=base_collection_path)
+            self.entry_cache = {
+                'base_collection':      base_collection,
+                'core_collection':      self.create_Entry( entry_path=core_collection_path, parent_entry=base_collection),
+                'working_collection':   self.create_Entry( entry_path=working_collection_path, parent_entry=base_collection)
+            }
 
 
-    def find_Entry(self, entry_name):
-        print("find_Entry({})".format(entry_name))
+    def find_Entry(self, entry_name, collection_object=None):
+        self.preload_collections_if_needed()
 
-        for collection_obj in self.search_collections():
+        collection_object = collection_object or self.entry_cache['working_collection']
 
-            if collection_obj.reach_method('find'):
-                entry_object = collection_obj.call('find', { 'entry_name' : entry_name} )
-                if entry_object:
-                    return entry_object
-            else:
-                print("{} doesn't implement or inherit the 'find' method".format(collection_path))
+        print("find_Entry({}, {})".format(entry_name, collection_object.get_name()))
 
-        return None
+        found_entry = self.entry_cache.get(entry_name)
+
+        if not found_entry:
+            found_entry = collection_object.call('find', { 'entry_name' : entry_name} )
+            if found_entry:
+                self.entry_cache[entry_name] = found_entry
+
+        return found_entry
 
 
 default_kernel_instance = MicroKernel()
@@ -59,7 +59,7 @@ default_kernel_instance = MicroKernel()
 
 class Entry:
     def __init__(self, entry_path=None, parent_entry=None, own_parameters=None, kernel=default_kernel_instance):
-        print("__new__ Entry({})".format(entry_path))
+        print("__init__ Entry({}) -> {}".format(entry_path, self))
         self.entry_path     = entry_path
         self.parent_entry   = parent_entry
         self.own_parameters = own_parameters
