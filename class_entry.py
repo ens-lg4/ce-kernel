@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.4'   # Try not to forget to update it!
+__version__ = '0.0.5'   # Try not to forget to update it!
 
 import os
 import utils
@@ -16,81 +16,59 @@ class MicroKernel:
     def __init__(self, parameters_location=('parameters.json',[]), code_container_name='python_code'):
         self.parameters_location    = parameters_location
         self.code_container_name    = code_container_name
-        self.entry_cache            = {}
+        self.collections_to_search  = None  # placeholder
 
-        self.collection_search_order = [ base_collection_path, core_collection_path, user_collection_path ]
 
     def get_version(self):
         return __version__
 
 
-    def get_cached(self, entry_name):
-        if entry_name in self.entry_cache:              # FIXME: make sure to spot-clear the cache as we add/remove/move entries on disk
-            print('CACHE ------> {}'.format(entry_name))
-            return self.entry_cache[entry_name]
-        else:
-            return None
+    def create_Entry(self, *args, **kwargs):
+        return Entry(*args, **kwargs, kernel=self)
 
 
-    def encache_entry(self, entry_name, entry_object):
-        print('CACHE <====== {}'.format(entry_name))
-        self.entry_cache[entry_name] = entry_object
+    def search_collections(self):
+        if self.collections_to_search==None:       # lazy-loading is needed to delay execution
+            base_collection             = self.create_Entry( entry_path=base_collection_path)
+            core_collection             = self.create_Entry( entry_path=core_collection_path, parent_entry=base_collection)
+            self.working_collection     = self.create_Entry( entry_path=user_collection_path, parent_entry=base_collection)
+
+            self.collections_to_search  = [ self.working_collection, core_collection ]
+
+        print("Collections to search: {}".format(self.collections_to_search))
+        return self.collections_to_search
 
 
     def find_Entry(self, entry_name):
         print("find_Entry({})".format(entry_name))
 
-        cached_entry = self.get_cached(entry_name)     # FIXME: make sure to spot-clear the cache as we add/remove/move entries on disk
-        if not cached_entry:
+        for collection_obj in self.search_collections():
 
-            full_path = None
-            for collection_path in self.collection_search_order:
+            if collection_obj.reach_method('find'):
+                entry_object = collection_obj.call('find', { 'entry_name' : entry_name} )
+                if entry_object:
+                    return entry_object
+            else:
+                print("{} doesn't implement or inherit the 'find' method".format(collection_path))
 
-                collection_obj = Entry(collection_path, kernel=self)
-
-                if collection_obj.reach_method('find'):     # FIXME: maybe preserve the function_object once found, to run it faster?
-                    full_path = collection_obj.call('find', { 'entry_name' : entry_name} )
-                    if full_path:
-                        break
-                else:
-                    print("{} doesn't implement or inherit the 'find' method".format(collection_path))
-
-            if full_path:
-                cached_entry = Entry(full_path, kernel=self)
-        return cached_entry
+        return None
 
 
 default_kernel_instance = MicroKernel()
 
 
 class Entry:
-    def __new__(cls, entry_path=None, own_parameters=None, kernel=default_kernel_instance):
-
-        entry_name = None
-        if entry_path:
-            entry_name = os.path.basename(entry_path)
-
-            cached_entry = kernel.get_cached(entry_name)
-            if cached_entry:
-                return cached_entry
-
-        self = super(Entry, cls).__new__(cls)
-
+    def __init__(self, entry_path=None, parent_entry=None, own_parameters=None, kernel=default_kernel_instance):
         print("__new__ Entry({})".format(entry_path))
         self.entry_path     = entry_path
-        self.kernel         = kernel
+        self.parent_entry   = parent_entry
         self.own_parameters = own_parameters
+        self.kernel         = kernel
 
-        ## Placeholders for lazy loading:
+        ## Placeholder(s) for lazy loading:
         #
 
-        self.parent_entry   = None
         self.module_object  = None
-
-        if entry_name:
-            kernel.encache_entry( entry_name, self )
-
-        return self
 
 
     def get_path(self, filename=None):
