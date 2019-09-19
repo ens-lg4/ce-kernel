@@ -1,0 +1,9 @@
+{
+    "parent_entry_name" : "base_collection",
+    "name_2_path" : {
+        "words_collection": "words_collection"
+    },
+    "collections_searchpath": [
+        "words_collection", "core_collection"
+    ]
+}
