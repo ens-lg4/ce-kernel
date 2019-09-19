@@ -4,6 +4,7 @@
         "base_collection"       : "base_collection",
         "cli_parser"            : "cli_parser",
         "job"                   : "job",
-        "help"                  : "help"
+        "help"                  : "help",
+        "clip"                  : "clip"
     }
 }
