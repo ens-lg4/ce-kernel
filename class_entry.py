@@ -180,7 +180,7 @@ if __name__ == '__main__':
     uncached_entry = Entry(own_parameters={'son': 'Lenny', 'daughter': 'Isabella'})
     print("Son: {}, Daughter: {}".format(uncached_entry['son'], uncached_entry['daughter']))
 
-    foo_entry = Entry(core_collection_path + '/foo_entry')
+    foo_entry = Entry(core_repository_path + '/foo_entry')
 
     p, q = foo_entry.call('foo', { 'alpha' : 100, 'beta' : 200, 'gamma' : 300, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_foo = {}, Q_foo = {}\n".format(p,q))
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     file_path   = foo_entry.get_path('abracadabra.txt')
     print("dir_path = {}, file_path = {}\n".format(dir_path, file_path))
 
-    bar_entry = Entry(core_collection_path + '/bar_entry')
+    bar_entry = Entry(core_repository_path + '/bar_entry')
 
     p, q = bar_entry.call('bar', { 'alpha' : 100, 'beta' : 200, 'epsilon' : 500, 'lambda' : 7777 } )
     print("P_bar = {}, Q_bar = {}\n".format(p,q))

@@ -1,7 +1,11 @@
 {
     "parent_entry_name" : "base_collection",
     "name_2_path" : {
-        "words_collection": "words_collection"
+        "kaware":               "kaware",
+        "params_entry":         "params_entry",
+        "iterative_functions":  "iterative_functions",
+        "recursive_functions":  "recursive_functions",
+        "words_collection":     "words_collection"
     },
     "collections_searchpath": [
         "words_collection", "core_collection"

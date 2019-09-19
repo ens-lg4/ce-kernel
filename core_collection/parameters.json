@@ -1,14 +1,9 @@
 {
     "parent_entry_name" : "base_collection",
     "name_2_path" : {
-        "entries"               : ".",
         "base_collection"       : "base_collection",
         "cli_parser"            : "cli_parser",
         "job"                   : "job",
-        "help"                  : "help",
-        "kaware"                : "kaware",
-        "params_entry"          : "params_entry",
-        "iterative_functions"   : "iterative_functions",
-        "recursive_functions"   : "recursive_functions"
+        "help"                  : "help"
     }
 }
