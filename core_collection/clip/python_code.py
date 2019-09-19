@@ -70,11 +70,11 @@ def parse(arglist):
     pipe_calls = []
 
     while i<len(arglist):
-        ## Since the previous iteration stopped, we are looking at a verb
+        ## Since the previous iteration stopped, we are looking at a method name
         #
-        call_verb   = arglist[i]
+        call_method = arglist[i]
         call_params = {}
-        pipe_calls.append( [ call_verb, call_params ] )
+        pipe_calls.append( [ call_method, call_params ] )
         i += 1
         while i<len(arglist) and is_param_like(arglist[i]):
             call_param_key, call_param_value = undash_unpair(arglist[i])
@@ -82,6 +82,25 @@ def parse(arglist):
             i += 1
 
     return kernel_params, pipe_calls
+
+
+def execute(pipe_calls, start_entry=None, __entry__=None, __kernel__=None):
+    "Execute the previously parsed command line"
+
+    current_entry = start_entry or __kernel__.entry_cache['working_collection']
+    call_output = None
+
+    for call_method, call_params in pipe_calls:
+        print("Call method: {}, Call params: {}".format(call_method, call_params))
+        call_output = current_entry.call(call_method, call_params )
+        print("Call output: {}".format(call_output))
+        if isinstance(call_output, type(__entry__)):
+            current_entry = call_output
+            print("Output is an Entry, switching to it")
+        else:
+            print("Output is not an Entry, staying with the current one")
+
+    return call_output
 
 
 if __name__ == '__main__':
