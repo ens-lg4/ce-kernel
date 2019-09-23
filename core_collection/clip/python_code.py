@@ -93,7 +93,9 @@ def execute(pipe_calls, start_entry=None, __entry__=None, __kernel__=None):
     call_output = None
     passed_params = {}
 
-    for call_method, call_params in pipe_calls:
+    for pipe_call_vector in pipe_calls:
+        call_method = pipe_call_vector[0]
+        call_params = pipe_call_vector[1] if len(pipe_call_vector)>1 else {}
         print("Call method: {}, Passed params: {}, Overriding params: {}".format(call_method, passed_params, call_params))
         mixed_params = utils.merged_dictionaries(passed_params, call_params)
         call_output = current_entry.call(call_method, mixed_params )

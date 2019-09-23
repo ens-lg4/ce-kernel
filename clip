@@ -8,9 +8,7 @@ Please run it without parameters to get help on syntax.
 Its source is also the simplest example of Python API.
 """
 
-import sys
 from class_entry import default_kernel_instance
-
 
 if __name__ == '__main__':
 
@@ -19,9 +17,9 @@ if __name__ == '__main__':
     ret_value = clip_entry.call('execute', {
             'start_entry': clip_entry,
             'pipe_calls': [
-                [ 'get_arglist',    {} ],
-                [ 'parse',          {} ],
-                [ 'execute',        {} ]
+                [ 'get_arglist' ],
+                [ 'parse'       ],
+                [ 'execute'     ]
     ] })
 
     exit(ret_value)
