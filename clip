@@ -16,8 +16,12 @@ if __name__ == '__main__':
 
     clip_entry  = default_kernel_instance.find_Entry('clip')
 
-    kernel_params, pipe_calls = clip_entry.call('parse', {'arglist': sys.argv})
-
-    ret_value = clip_entry.call('execute', { 'pipe_calls': pipe_calls })
+    ret_value = clip_entry.call('execute', {
+            'start_entry': clip_entry,
+            'pipe_calls': [
+                [ 'get_arglist',    {} ],
+                [ 'parse',          {} ],
+                [ 'execute',        {} ]
+    ] })
 
     exit(ret_value)

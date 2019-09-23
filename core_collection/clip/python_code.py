@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 
 
+def get_arglist():
+    "Returns command line arguments as a list, wrapped in a dictionary"
+
+    import sys
+
+    return { 'arglist': sys.argv }
+
+
 def parse(arglist):
     """Parse the command line given as a list of string arguments.
 
@@ -68,26 +76,37 @@ def parse(arglist):
             i += 1
 
     caller_name, kernel_params = pipe_calls.pop(0)
-    kernel_params['caller_name'] = caller_name
 
-    return kernel_params, pipe_calls
+    return {
+        'caller_name':      caller_name,
+        'kernel_params':    kernel_params,
+        'pipe_calls':       pipe_calls,
+    }
 
 
 def execute(pipe_calls, start_entry=None, __entry__=None, __kernel__=None):
     "Execute the previously parsed command line"
 
+    import utils
+
     current_entry = start_entry or __kernel__.entry_cache['working_collection']
     call_output = None
+    passed_params = {}
 
     for call_method, call_params in pipe_calls:
-        print("Call method: {}, Call params: {}".format(call_method, call_params))
-        call_output = current_entry.call(call_method, call_params )
+        print("Call method: {}, Passed params: {}, Overriding params: {}".format(call_method, passed_params, call_params))
+        mixed_params = utils.merged_dictionaries(passed_params, call_params)
+        call_output = current_entry.call(call_method, mixed_params )
         print("Call output: {}".format(call_output))
         if isinstance(call_output, type(__entry__)):
             current_entry = call_output
+            passed_params = {}
             print("Output is an Entry, switching to it")
+        elif isinstance(call_output, dict):
+            passed_params = call_output
+            print("Output is a dictionary, passing it for a merge")
         else:
-            print("Output is not an Entry, staying with the current one")
+            print("Output is neither an Entry nor a dictionary, staying with the current one")
 
     return call_output
 
@@ -97,10 +116,10 @@ if __name__ == '__main__':
     ## When the entry's code is run as a script, perform local tests:
     #
     cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A --p5 --p6=60 p7= p6=600 --p8=v8 method_B method_C --p9=999 -p10'
-    kernel_params, pipe_calls = parse( cmd_line.split(' ') )
+    parsed_cmd = parse( cmd_line.split(' ') )
 
     from pprint import pprint
-    print("Kernel parameters:")
-    pprint(kernel_params)
+    print("Caller name: {}".format(parsed_cmd['caller_name']))
+    print("Kernel parameters: {}".format(parsed_cmd['kernel_params']))
     print("\nPipeline calls:")
-    pprint(pipe_calls)
+    pprint(parsed_cmd['pipe_calls'])
