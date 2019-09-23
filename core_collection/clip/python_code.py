@@ -51,22 +51,8 @@ def parse(arglist):
             param_name, param_value = undashed, 'yes'
         return (param_name, param_value)
 
-    kernel_params  = { 'caller_name'   : arglist[0] }
-    call_params = {}
 
-    ## Optional kernel_params may follow the caller_name:
-    #
-    i = 1
-    while i<len(arglist) and is_param_like(arglist[i]):   # auxiliary kernel parameters precede a chain of calls
-        kernel_param_key, kernel_param_value = undash_unpair(arglist[i])
-        kernel_params[kernel_param_key] = kernel_param_value
-        i += 1
-
-    ## No arguments means the same as --help
-    #
-    if len(arglist)==1:
-        kernel_params['help'] = 'yes'
-
+    i = 0
     pipe_calls = []
 
     while i<len(arglist):
@@ -80,6 +66,9 @@ def parse(arglist):
             call_param_key, call_param_value = undash_unpair(arglist[i])
             call_params[call_param_key] = call_param_value
             i += 1
+
+    caller_name, kernel_params = pipe_calls.pop(0)
+    kernel_params['caller_name'] = caller_name
 
     return kernel_params, pipe_calls
 
