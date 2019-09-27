@@ -9,7 +9,7 @@ def execute_job(job_params, call_params, __kernel__=None):
     entry_name  = job_params.get('entry_name')
 
     if 'version' in job_params:
-        print("Kernel version: {}".format(__kernel__.get_version()))
+        print("Kernel version: {}".format(__kernel__.version()))
         return 0
 
     if method_name==None or entry_name==None:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.6'   # Try not to forget to update it!
+__version__ = '0.0.7'   # Try not to forget to update it!
 
 import os
 import utils
@@ -19,7 +19,7 @@ class MicroKernel:
         self.entry_cache            = None
 
 
-    def get_version(self):
+    def version(self):
         return __version__
 
 
@@ -173,7 +173,7 @@ class Entry:
 
 if __name__ == '__main__':
 
-    print("Kernel version = {}".format(default_kernel_instance.get_version()))
+    print("Kernel version = {}".format(default_kernel_instance.version()))
 
     print(core_repository_path)
 
