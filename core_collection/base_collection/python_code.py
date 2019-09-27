@@ -21,7 +21,7 @@ def find(entry_name, name_2_path, collections_searchpath, __entry__=None, __kern
     if relative_path:
         if __entry__:
             full_path = __entry__.get_path(relative_path)
-            return __kernel__.create_Entry(full_path)
+            return __kernel__.bypath( full_path )
         else:
             return relative_path
     elif collections_searchpath:

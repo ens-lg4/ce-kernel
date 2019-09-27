@@ -23,17 +23,17 @@ class MicroKernel:
         return __version__
 
 
-    def create_Entry(self, *args, **kwargs):
-        return Entry(*args, **kwargs, kernel=self)
+    def bypath(self, path, *args, **kwargs):
+        return Entry(*args, **kwargs, entry_path=path, kernel=self)
 
 
     def preload_collections_if_needed(self):
         if self.entry_cache==None:       # lazy-loading is needed to delay execution
-            base_collection     = self.create_Entry( entry_path=base_collection_path)
+            base_collection     = self.bypath( base_collection_path )
             self.entry_cache = {
                 'base_collection':      base_collection,
-                'core_collection':      self.create_Entry( entry_path=core_collection_path, parent_entry=base_collection),
-                'working_collection':   self.create_Entry( entry_path=working_collection_path, parent_entry=base_collection)
+                'core_collection':      self.bypath( core_collection_path, parent_entry=base_collection ),
+                'working_collection':   self.bypath( working_collection_path, parent_entry=base_collection )
             }
 
 
