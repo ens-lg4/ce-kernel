@@ -54,6 +54,42 @@ class MicroKernel:
         return found_entry
 
 
+    def chain(self, chain, start_entry=None):
+        self.preload_collections_if_needed()
+
+        current_entry = start_entry or self.entry_cache['working_collection']
+        call_output = None
+        passed_params = {}
+
+        for call_vector in chain:
+            call_method = call_vector[0]
+            call_params = call_vector[1] if len(call_vector)>1 else {}
+            print("Call method: {}, Passed params: {}, Overriding params: {}".format(call_method, passed_params, call_params))
+            mixed_params = utils.merged_dictionaries(passed_params, call_params)
+
+            try:
+                call_output = current_entry.call(call_method, mixed_params )
+            except NameError as method_not_found_e:
+                try:
+                    kernel_method_object = getattr(self, call_method)
+                    call_output = utils.free_access(kernel_method_object, mixed_params, class_method=True)
+                except AttributeError:
+                    raise method_not_found_e
+
+            print("Call output: {}".format(call_output))
+            if isinstance(call_output, Entry):
+                current_entry = call_output
+                passed_params = {}
+                print("Output is an Entry, switching to it")
+            elif isinstance(call_output, dict):
+                passed_params = call_output
+                print("Output is a dictionary, passing it for a merge")
+            else:
+                print("Output is neither an Entry nor a dictionary, staying with the current one")
+
+        return call_output
+
+
 default_kernel_instance = MicroKernel()
 
 

@@ -12,14 +12,12 @@ from class_entry import default_kernel_instance
 
 if __name__ == '__main__':
 
-    clip_entry  = default_kernel_instance.byname('clip')
-
-    ret_value = clip_entry.call('execute', {
-            'start_entry': clip_entry,
-            'pipe_calls': [
+    ret_value = default_kernel_instance.chain( [
+                [ 'find', { 'entry_name' : 'clip'} ],
                 [ 'get_arglist' ],
                 [ 'parse'       ],
-                [ 'execute'     ]
-    ] })
+                [ 'chain'       ]
+        ]
+    )
 
     exit(ret_value)

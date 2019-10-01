@@ -80,37 +80,8 @@ def parse(arglist):
     return {
         'caller_name':      caller_name,
         'kernel_params':    kernel_params,
-        'pipe_calls':       pipe_calls,
+        'chain':            pipe_calls,
     }
-
-
-def execute(pipe_calls, start_entry=None, __entry__=None, __kernel__=None):
-    "Execute the previously parsed command line"
-
-    import utils
-
-    current_entry = start_entry or __kernel__.entry_cache['working_collection']
-    call_output = None
-    passed_params = {}
-
-    for pipe_call_vector in pipe_calls:
-        call_method = pipe_call_vector[0]
-        call_params = pipe_call_vector[1] if len(pipe_call_vector)>1 else {}
-        print("Call method: {}, Passed params: {}, Overriding params: {}".format(call_method, passed_params, call_params))
-        mixed_params = utils.merged_dictionaries(passed_params, call_params)
-        call_output = current_entry.call(call_method, mixed_params )
-        print("Call output: {}".format(call_output))
-        if isinstance(call_output, type(__entry__)):
-            current_entry = call_output
-            passed_params = {}
-            print("Output is an Entry, switching to it")
-        elif isinstance(call_output, dict):
-            passed_params = call_output
-            print("Output is a dictionary, passing it for a merge")
-        else:
-            print("Output is neither an Entry nor a dictionary, staying with the current one")
-
-    return call_output
 
 
 if __name__ == '__main__':
