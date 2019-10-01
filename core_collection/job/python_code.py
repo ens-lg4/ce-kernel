@@ -20,13 +20,13 @@ def execute_job(job_params, call_params, __kernel__=None):
         print("{} command line parser:\n\tjob_params={}, call_params={}\n".format(caller_name, job_params, call_params))
         return 0
 
-    entry   = __kernel__.find_Entry(entry_name)
+    entry   = __kernel__.byname(entry_name)
     if not entry:
         print("{}: Could not find the entry '{}'".format(caller_name, entry_name))
         return 2
 
     if 'help' in job_params:   # now that the format is ok, reaching for method's documentation
-        __kernel__.find_Entry('help').call('method', { 'entry_name': entry_name, 'method_name': method_name})
+        __kernel__.byname('help').call('method', { 'entry_name': entry_name, 'method_name': method_name})
 
     else:
         try:

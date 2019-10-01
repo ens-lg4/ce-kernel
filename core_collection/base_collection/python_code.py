@@ -27,8 +27,8 @@ def find(entry_name, name_2_path, collections_searchpath, __entry__=None, __kern
     elif collections_searchpath:
         for subcollection_name in collections_searchpath:
             subcollection_local     = name_2_path.get(subcollection_name)
-            subcollection_object    = __kernel__.find_Entry(subcollection_name, __entry__ if subcollection_local else None)
-            found_object            = __kernel__.find_Entry(entry_name, subcollection_object)
+            subcollection_object    = __kernel__.byname(subcollection_name, __entry__ if subcollection_local else None)
+            found_object            = __kernel__.byname(entry_name, subcollection_object)
             if found_object:
                 return found_object
     

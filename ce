@@ -14,8 +14,8 @@ from class_entry import default_kernel_instance
 
 if __name__ == '__main__':
 
-    job_params, call_params = default_kernel_instance.find_Entry('cli_parser').call('cli_parse', {'arglist': sys.argv})
+    job_params, call_params = default_kernel_instance.byname('cli_parser').call('cli_parse', {'arglist': sys.argv})
 
-    ret_value = default_kernel_instance.find_Entry('job').call('execute_job', { 'job_params': job_params, 'call_params': call_params })
+    ret_value = default_kernel_instance.byname('job').call('execute_job', { 'job_params': job_params, 'call_params': call_params })
 
     exit(ret_value)

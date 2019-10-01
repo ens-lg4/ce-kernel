@@ -37,12 +37,12 @@ class MicroKernel:
             }
 
 
-    def find_Entry(self, entry_name, collection_object=None):
+    def byname(self, entry_name, collection_object=None):
         self.preload_collections_if_needed()
 
         collection_object = collection_object or self.entry_cache['working_collection']
 
-        print("find_Entry({}, {})".format(entry_name, collection_object.get_name()))
+        print("byname({}, {})".format(entry_name, collection_object.get_name()))
 
         found_entry = self.entry_cache.get(entry_name)
 
@@ -94,7 +94,7 @@ class Entry:
         if self.parent_entry==None:     # lazy-loading condition
             parent_entry_name = self.parameters_loaded().get('parent_entry_name', None)
             if parent_entry_name:
-                self.parent_entry = self.kernel.find_Entry(parent_entry_name)   # in case we get a False, it should stick and not cause another find_Entry() in future
+                self.parent_entry = self.kernel.byname(parent_entry_name)   # in case we get a False, it should stick and not cause another byname() in future
             else:
                 self.parent_entry = False
 
@@ -204,10 +204,10 @@ if __name__ == '__main__':
     ## Switching to another kernel_instance would mean all other classes (including collections would have to comply with changes!)
     #
 #    iter_entry_kernel_instance = MicroKernel( parameters_location=('parameters.json',["alternative", "place", 1]) )
-#    iterative_entry = iter_entry_kernel_instance.find_Entry('iterative_functions')
+#    iterative_entry = iter_entry_kernel_instance.byname('iterative_functions')
 
-    iterative_entry = default_kernel_instance.find_Entry('iterative_functions')
-    recursive_entry = default_kernel_instance.find_Entry('recursive_functions')
+    iterative_entry = default_kernel_instance.byname('iterative_functions')
+    recursive_entry = default_kernel_instance.byname('recursive_functions')
 
     for funcs_entry in (iterative_entry, recursive_entry):
         entry_name  = funcs_entry.get_name()
@@ -215,7 +215,7 @@ if __name__ == '__main__':
         fact_n      = funcs_entry.call('factorial', {} )
         print("{} : fib(n) = {}, fact(n) = {}\n".format(entry_name, fib_n, fact_n))
 
-    params_entry    = default_kernel_instance.find_Entry('params_entry')
+    params_entry    = default_kernel_instance.byname('params_entry')
     params_dict     = params_entry.call('show', {'alpha' : 'Hello', 'gamma' : 'World', 'delta' : 420} )
     print(" 'show' method when called via API returned : {}\n".format(params_dict))
 
@@ -226,13 +226,13 @@ if __name__ == '__main__':
 
     ## direct inheritance from param_entry (via parent_entry_name):
     #
-    latin = default_kernel_instance.find_Entry('latin')
+    latin = default_kernel_instance.byname('latin')
     print(latin.generate_merged_parameters())
     print("")
 
     ## direct inheritance from latin (and so indirect from param_entry):
     #
-    english = default_kernel_instance.find_Entry('english')
+    english = default_kernel_instance.byname('english')
     print(english.generate_merged_parameters())
     print("")
 
@@ -256,10 +256,10 @@ if __name__ == '__main__':
 
     ## what happens if the entry could not be found?
     #
-    gaelic_entry = default_kernel_instance.find_Entry('gaelic')
+    gaelic_entry = default_kernel_instance.byname('gaelic')
     print(gaelic_entry)
     print("")
 
-    help_entry = default_kernel_instance.find_Entry('help')
+    help_entry = default_kernel_instance.byname('help')
     help_entry.call('entry', { 'entry_name': 'kaware'})
     help_entry.call('method', { 'entry_name': 'cli_parser', 'method_name': 'cli_parse'})
