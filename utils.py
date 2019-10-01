@@ -32,7 +32,7 @@ def get_entrys_python_module(module_path, code_container_name='python_code'):
     return module_object
 
 
-def free_access(function_object, given_arg_dict):
+def free_access(function_object, given_arg_dict, class_method=False):
     """ Call a given function_object and feed it with arguments from a given dictionary.
 
         The function can be declared as having named args, defaults and optionally **kwargs.
@@ -42,6 +42,9 @@ def free_access(function_object, given_arg_dict):
         supported_arg_names, varargs, varkw, defaults = inspect.getargspec(function_object)
     else:
         supported_arg_names, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(function_object)
+
+    if class_method:
+        supported_arg_names.pop(0)
 
     num_required        = len(supported_arg_names) - len(defaults or tuple())
     required_arg_names  = supported_arg_names[:num_required]
