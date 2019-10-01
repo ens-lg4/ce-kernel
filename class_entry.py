@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.7'   # Try not to forget to update it!
+__version__ = '0.0.8'   # Try not to forget to update it!
 
 import os
 import utils
