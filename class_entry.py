@@ -14,7 +14,6 @@ class MicroKernel:
     def __init__(self, parameters_location=('parameters.json',[]), code_container_name='python_code'):
         self.parameters_location    = parameters_location
         self.code_container_name    = code_container_name
-        self.entry_cache            = {}
         self.cached_wc              = None
 
     def version(self):
@@ -46,16 +45,17 @@ class MicroKernel:
         """
         collection_object = collection_object or self.working_collection()
 
-        print("KERNEL.byname({}, {})".format(entry_name, collection_object.get_name()))
+        print("KERNEL.byname({} in {})".format(entry_name, collection_object.get_name()))
 
         return collection_object.call('byname', { 'entry_name' : entry_name} )
 
 
-    def chain(self, chain, start_entry=None):
+    def chain(self, chain, start_object=None):
 
-        print("KERNEL.chain({}, {})".format(chain, start_entry))
+        current_object = start_object or self.working_collection()
 
-        current_entry = start_entry or self.working_collection()
+        print("KERNEL.chain({} starting from {})".format(chain, current_object.get_name()))
+
         call_output = None
         passed_params = {}
 
@@ -66,7 +66,7 @@ class MicroKernel:
             mixed_params = utils.merged_dictionaries(passed_params, call_params)
 
             try:
-                call_output = current_entry.call(call_method, mixed_params )
+                call_output = current_object.call(call_method, mixed_params )
             except NameError as method_not_found_e:
                 try:
                     kernel_method_object = getattr(self, call_method)
@@ -76,7 +76,7 @@ class MicroKernel:
 
             print("Call output: {}".format(call_output))
             if isinstance(call_output, Entry):
-                current_entry = call_output
+                current_object = call_output
                 passed_params = {}
                 print("Output is an Entry, switching to it")
             elif isinstance(call_output, dict):
