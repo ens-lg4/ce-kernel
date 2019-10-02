@@ -47,7 +47,7 @@ class MicroKernel:
         found_entry = self.entry_cache.get(entry_name)
 
         if not found_entry:
-            found_entry = collection_object.call('find', { 'entry_name' : entry_name} )
+            found_entry = collection_object.call('byname', { 'entry_name' : entry_name} )
             if found_entry:
                 self.entry_cache[entry_name] = found_entry
 

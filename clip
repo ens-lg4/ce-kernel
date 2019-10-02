@@ -13,7 +13,7 @@ from class_entry import default_kernel_instance
 if __name__ == '__main__':
 
     ret_value = default_kernel_instance.chain( [
-                [ 'find', { 'entry_name' : 'clip'} ],
+                [ 'byname', { 'entry_name' : 'clip'} ],
                 [ 'get_arglist' ],
                 [ 'parse'       ],
                 [ 'chain'       ]
