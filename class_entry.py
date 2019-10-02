@@ -20,10 +20,18 @@ class MicroKernel:
 
 
     def version(self):
+        """
+            Usage example:
+                clip version
+        """
         return __version__
 
 
     def bypath(self, path, *args, **kwargs):
+        """
+            Usage example:
+                clip bypath --path=foo_entry foo --alpha=12 --beta=23 --gamma=34
+        """
         return Entry(*args, **kwargs, entry_path=path, kernel=self)
 
 
@@ -38,6 +46,10 @@ class MicroKernel:
 
 
     def byname(self, entry_name, collection_object=None):
+        """
+            Usage example:
+                clip byname --entry_name=iterative_functions factorial --n=6 fibonacci --n=8
+        """
         self.preload_collections_if_needed()
 
         collection_object = collection_object or self.entry_cache['working_collection']
