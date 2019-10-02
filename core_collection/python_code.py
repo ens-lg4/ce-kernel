@@ -26,8 +26,12 @@ def byname(entry_name, name_2_path, collections_searchpath, __entry__=None, __ke
             return relative_path
     elif collections_searchpath:
         for subcollection_name in collections_searchpath:
-            subcollection_local     = name_2_path.get(subcollection_name)
-            subcollection_object    = __kernel__.byname(subcollection_name, __entry__ if subcollection_local else None)
+            if subcollection_name.find('/')>=0:
+                subcollection_object    = __kernel__.bypath(subcollection_name)
+            else:
+                subcollection_local     = name_2_path.get(subcollection_name)
+                subcollection_object    = __kernel__.byname(subcollection_name, __entry__ if subcollection_local else None)
+
             found_object            = __kernel__.byname(entry_name, subcollection_object)
             if found_object:
                 return found_object

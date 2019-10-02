@@ -1,10 +1,10 @@
 {
-    "parent_entry_name" : "base_collection",
     "name_2_path" : {
-        "base_collection"       : "base_collection",
         "cli_parser"            : "cli_parser",
         "job"                   : "job",
         "help"                  : "help",
         "clip"                  : "clip"
-    }
+    },
+    "collections_searchpath" : [
+    ]
 }

@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.8'   # Try not to forget to update it!
+__version__ = '0.0.9'   # Try not to forget to update it!
 
 import os
 import utils
 
 
 core_repository_path = os.path.dirname( os.path.realpath(__file__) )    # depends on relative position of THIS FILE in the repository
-base_collection_path = os.path.join(core_repository_path, 'core_collection', 'base_collection')
-core_collection_path = os.path.join(core_repository_path, 'core_collection')
 working_collection_path = os.path.join(core_repository_path, 'working_collection')
 
 
@@ -16,8 +14,8 @@ class MicroKernel:
     def __init__(self, parameters_location=('parameters.json',[]), code_container_name='python_code'):
         self.parameters_location    = parameters_location
         self.code_container_name    = code_container_name
-        self.entry_cache            = None
-
+        self.entry_cache            = {}
+        self.cached_wc              = None
 
     def version(self):
         """
@@ -32,17 +30,13 @@ class MicroKernel:
             Usage example:
                 clip bypath --path=foo_entry foo --alpha=12 --beta=23 --gamma=34
         """
+        print("KERNEL.bypath({}, {}, {})".format(path, args, kwargs))
         return Entry(*args, **kwargs, entry_path=path, kernel=self)
 
 
-    def preload_collections_if_needed(self):
-        if self.entry_cache==None:       # lazy-loading is needed to delay execution
-            base_collection     = self.bypath( base_collection_path )
-            self.entry_cache = {
-                'base_collection':      base_collection,
-                'core_collection':      self.bypath( core_collection_path, parent_entry=base_collection ),
-                'working_collection':   self.bypath( working_collection_path, parent_entry=base_collection )
-            }
+    def working_collection(self):
+        self.cached_wc = self.cached_wc or self.bypath( working_collection_path )
+        return self.cached_wc
 
 
     def byname(self, entry_name, collection_object=None):
@@ -50,26 +44,18 @@ class MicroKernel:
             Usage example:
                 clip byname --entry_name=iterative_functions factorial --n=6 fibonacci --n=8
         """
-        self.preload_collections_if_needed()
+        collection_object = collection_object or self.working_collection()
 
-        collection_object = collection_object or self.entry_cache['working_collection']
+        print("KERNEL.byname({}, {})".format(entry_name, collection_object.get_name()))
 
-        print("byname({}, {})".format(entry_name, collection_object.get_name()))
-
-        found_entry = self.entry_cache.get(entry_name)
-
-        if not found_entry:
-            found_entry = collection_object.call('byname', { 'entry_name' : entry_name} )
-            if found_entry:
-                self.entry_cache[entry_name] = found_entry
-
-        return found_entry
+        return collection_object.call('byname', { 'entry_name' : entry_name} )
 
 
     def chain(self, chain, start_entry=None):
-        self.preload_collections_if_needed()
 
-        current_entry = start_entry or self.entry_cache['working_collection']
+        print("KERNEL.chain({}, {})".format(chain, start_entry))
+
+        current_entry = start_entry or self.working_collection()
         call_output = None
         passed_params = {}
 
@@ -142,7 +128,10 @@ class Entry:
         if self.parent_entry==None:     # lazy-loading condition
             parent_entry_name = self.parameters_loaded().get('parent_entry_name', None)
             if parent_entry_name:
-                self.parent_entry = self.kernel.byname(parent_entry_name)   # in case we get a False, it should stick and not cause another byname() in future
+                if parent_entry_name.find('/')>=0:  # FIXME: parent_entry_name is a bad name
+                    self.parent_entry = self.kernel.bypath( parent_entry_name )
+                else:
+                    self.parent_entry = self.kernel.byname( parent_entry_name )   # in case we get a False, it should stick and not cause another byname() in future
             else:
                 self.parent_entry = False
 
