@@ -70,7 +70,7 @@ automatically inherited.
 
 Parameter precedence rule
 -------------------------
-What is the same parameter is defined in several places?
+What if the same parameter is defined in several places?
     paramX: valueA  # in the "current object"
     .paramX=valueB  # in the tweaks on the left
     --paramX=valueC # in the call parameters on the right
