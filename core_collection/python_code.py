@@ -39,6 +39,51 @@ def byname(entry_name, name_2_path, collections_searchpath, __entry__=None, __ke
     return None
 
 
+def add_entry(entry_name, __entry__=None, __kernel__=None):
+    """
+        Usage example:
+            clip byname --entry_name=words_collection add_entry --entry_name=xyz
+    """
+    import os
+
+    # Create the physical directory for the new entry:
+    new_entry_full_path = __entry__.get_path(entry_name)
+    print("add_entry: new_entry_full_path="+new_entry_full_path)
+    os.makedirs(new_entry_full_path)      # FIXME: fail gracefully if directory path existed
+
+    # Add the new entry to collection:
+    __entry__.parameters_loaded()['name_2_path'][entry_name] = entry_name
+    __entry__.update()
+
+    # Update parameters of the new entry:
+    new_entry = __kernel__.bypath(new_entry_full_path)
+    new_entry.parameters_loaded()['Hello'] = 'world!'
+    new_entry.update()
+
+    return new_entry
+
+
+def delete_entry(entry_name, __entry__=None, __kernel__=None):
+    """
+        Usage example:
+            clip byname --entry_name=words_collection delete_entry --entry_name=xyz
+    """
+    import shutil
+
+    name_2_path = __entry__.parameters_loaded()['name_2_path']
+    old_entry_full_path = __entry__.get_path(name_2_path[entry_name])
+    print("delete_entry: old_entry_full_path="+old_entry_full_path)
+
+    # Remove the old entry from collection:
+    del name_2_path[entry_name]
+    __entry__.update()
+
+    # Remove the physical directory of the old entry:
+    shutil.rmtree(old_entry_full_path)
+
+    return __entry__
+
+
 if __name__ == '__main__':
 
     # When the entry's code is run as a script, perform local tests:
