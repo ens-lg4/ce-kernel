@@ -95,4 +95,4 @@ if __name__ == '__main__':
     print("Caller name: {}".format(parsed_cmd['caller_name']))
     print("Kernel parameters: {}".format(parsed_cmd['kernel_params']))
     print("\nPipeline calls:")
-    pprint(parsed_cmd['pipe_calls'])
+    pprint(parsed_cmd['chain'])
