@@ -87,6 +87,11 @@ def quietly_load_json_config( filepath, structpath=[] ):
         return {}, False
 
 
+def store_structure_to_json_file( structure, filepath, json_indent=4 ):
+    with open(filepath, "w") as json_file:
+        json_file.write( json.dumps(structure, indent=json_indent)+'\n' )
+
+
 def baz(alpha, beta=22, gamma=333):
     print('alpha = "{}", beta = "{}", gamma = "{}"'.format(alpha,beta,gamma))
     return 987, 654, 321

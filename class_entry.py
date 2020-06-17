@@ -124,6 +124,14 @@ class Entry:
         return self.own_parameters
 
 
+    def update(self):   # FIXME: currently ignoring parameters_struct_path
+        own_parameters = self.parameters_loaded()
+        parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
+        utils.store_structure_to_json_file(own_parameters, self.get_path(parameters_rel_path))
+
+        return own_parameters
+
+
     def parent_loaded(self):
         if self.parent_entry==None:     # lazy-loading condition
             parent_entry_name = self.parameters_loaded().get('parent_entry_name', None)
