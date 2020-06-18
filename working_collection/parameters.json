@@ -1,14 +1,15 @@
 {
-    "parent_entry_name" : "/Users/lg4/work/sandbox/python/introspect/ce/core_collection",
-    "name_2_path" : {
-        "download_entry":       "download_entry",
-        "kaware":               "kaware",
-        "params_entry":         "params_entry",
-        "iterative_functions":  "iterative_functions",
-        "recursive_functions":  "recursive_functions",
-        "words_collection":     "words_collection"
+    "parent_entry_name": "/Users/lg4/work/sandbox/python/introspect/ce/core_collection",
+    "name_2_path": {
+        "download_entry": "download_entry",
+        "kaware": "kaware",
+        "params_entry": "params_entry",
+        "iterative_functions": "iterative_functions",
+        "recursive_functions": "recursive_functions",
+        "words_collection": "words_collection"
     },
     "collections_searchpath": [
-        "words_collection", "/Users/lg4/work/sandbox/python/introspect/ce/core_collection"
+        "words_collection",
+        "/Users/lg4/work/sandbox/python/introspect/ce/core_collection"
     ]
 }
