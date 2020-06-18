@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.9'   # Try not to forget to update it!
+__version__ = '0.0.10'   # Try not to forget to update it!
 
 import os
 import utils
@@ -69,10 +69,14 @@ class MicroKernel:
                 call_output = current_object.call(call_method, mixed_params )
             except NameError as method_not_found_e:
                 try:
-                    kernel_method_object = getattr(self, call_method)
-                    call_output = utils.free_access(kernel_method_object, mixed_params, class_method=True)
+                    entry_method_object = getattr(current_object, call_method)
+                    call_output = utils.free_access(entry_method_object, mixed_params, class_method=True)
                 except AttributeError:
-                    raise method_not_found_e
+                    try:
+                        kernel_method_object = getattr(self, call_method)
+                        call_output = utils.free_access(kernel_method_object, mixed_params, class_method=True)
+                    except AttributeError:
+                        raise method_not_found_e
 
             print("Call output: {}".format(call_output))
             if isinstance(call_output, Entry):
@@ -106,6 +110,10 @@ class Entry:
 
 
     def get_path(self, filename=None):
+        """
+            Usage example:
+                clip byname --entry_name=words_collection get_path
+        """
         if filename:
             return os.path.join(self.entry_path, filename)
         else:
