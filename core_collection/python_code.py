@@ -39,10 +39,10 @@ def byname(entry_name, name_2_path, collections_searchpath, __entry__=None, __ke
     return None
 
 
-def add_entry(entry_name, __entry__=None, __kernel__=None):
+def add_entry(entry_name, data=None, __entry__=None, __kernel__=None):
     """
         Usage example:
-            clip byname --entry_name=words_collection add_entry --entry_name=xyz
+            clip byname --entry_name=words_collection add_entry --entry_name=xyz --data.foo.bar=1234 --data.baz=alpha
     """
     import os
 
@@ -55,9 +55,12 @@ def add_entry(entry_name, __entry__=None, __kernel__=None):
     __entry__.parameters_loaded()['name_2_path'][entry_name] = entry_name
     __entry__.update()
 
+    if data==None:
+        data = {}
+
     # Update parameters of the new entry:
     new_entry = __kernel__.bypath(new_entry_full_path)
-    new_entry.parameters_loaded()['Hello'] = 'world!'
+    new_entry.parameters_loaded().update( data )
     new_entry.update()
 
     return new_entry
