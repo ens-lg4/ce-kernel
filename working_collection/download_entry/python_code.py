@@ -1,19 +1,47 @@
 #!/usr/bin/env python3
 
-# Test via CLIP:
-#   clip bypath --path=working_collection/download_entry wget --url='http://example.com' --target_path=exmpl.html
+# This entry knows how to download a file given a URL and can create a holding entry for it.
 #
-# or after it has been added to the working_collection:
-#   clip byname --entry_name=download_entry wget --url='http://example.com' --target_path=exmpl.html
+# Parameterizations of this entry can be recipes for downloading specific things.
 
 import os
 
-def download(url, target_path):
+def download(url, entry_name, file_name, __kernel__):
+    """
+        Usage example:
+            clip byname --entry_name=download_entry download --url='https://www.1112.net/lastpage.html' --entry_name=lastpage_downloaded --file_name=lp.html
+
+        Clean up:
+            clip delete_entry --entry_name=lastpage_downloaded
+    """
+    data = {
+        'url':          url,
+        'file_name':    file_name,
+        'remark':       'downloaded via URL'
+    }
+    target_path = __kernel__.chain( [
+                [ 'working_collection' ],
+                [ 'add_entry', { 'entry_name' : entry_name, 'data': data} ],
+                [ 'get_path', {'file_name': file_name} ],
+        ]
+    )
+    download_to_path(url, target_path)
+
+
+def download_to_path(url, target_path):
+    """
+        Usage example:
+            clip byname --entry_name=download_entry download_to_path --url='http://example.com' --target_path=exmpl.html
+    """
     print('url = "{}", target_path = "{}"'.format(url, target_path))
     return wget(url, target_path)
 
 
 def wget(url, target_path):
+    """
+        Usage example (not assuming the entry has been added to the collection) :
+            clip bypath --path=working_collection/download_entry wget --url='http://example.com' --target_path=exmpl.html
+    """
     return os.system('wget -O {} {}'.format(target_path, url))
 
 

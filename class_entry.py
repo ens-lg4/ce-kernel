@@ -109,13 +109,13 @@ class Entry:
         self.module_object  = None
 
 
-    def get_path(self, filename=None):
+    def get_path(self, file_name=None):
         """
             Usage example:
                 clip byname --entry_name=words_collection get_path
         """
-        if filename:
-            return os.path.join(self.entry_path, filename)
+        if file_name:
+            return os.path.join(self.entry_path, file_name)
         else:
             return self.entry_path
 
