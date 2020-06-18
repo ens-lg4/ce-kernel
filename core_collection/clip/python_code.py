@@ -72,7 +72,17 @@ def parse(arglist):
         i += 1
         while i<len(arglist) and is_param_like(arglist[i]):
             call_param_key, call_param_value = undash_unpair(arglist[i])
-            call_params[call_param_key] = call_param_value
+
+            dot_position = call_param_key.find('.')     # FIXME: only one level supported for now
+            if dot_position>0:
+                call_param_top_key, call_param_sub_key = call_param_key[0:dot_position], call_param_key[dot_position+1:]
+                if call_param_top_key in call_params:
+                    call_params[call_param_top_key][call_param_sub_key] = call_param_value
+                else:
+                    call_params[call_param_top_key] = { call_param_sub_key : call_param_value }
+            else:
+                call_params[call_param_key] = call_param_value
+
             i += 1
 
     caller_name, kernel_params = pipe_calls.pop(0)
@@ -88,7 +98,7 @@ if __name__ == '__main__':
 
     ## When the entry's code is run as a script, perform local tests:
     #
-    cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A --p5 --p6=60 p7= p6=600 --p8=v8 method_B method_C --p9=999 -p10'
+    cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A --p5 --p6=60 p7= p6=600 --p8.key1=v81 --p8.key2=82 method_B method_C --p9=999 -p10'
     parsed_cmd = parse( cmd_line.split(' ') )
 
     from pprint import pprint
