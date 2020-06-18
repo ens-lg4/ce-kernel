@@ -73,15 +73,16 @@ def parse(arglist):
         while i<len(arglist) and is_param_like(arglist[i]):
             call_param_key, call_param_value = undash_unpair(arglist[i])
 
-            dot_position = call_param_key.find('.')     # FIXME: only one level supported for now
-            if dot_position>0:
-                call_param_top_key, call_param_sub_key = call_param_key[0:dot_position], call_param_key[dot_position+1:]
-                if call_param_top_key in call_params:
-                    call_params[call_param_top_key][call_param_sub_key] = call_param_value
-                else:
-                    call_params[call_param_top_key] = { call_param_sub_key : call_param_value }
-            else:
-                call_params[call_param_key] = call_param_value
+            key_syllables = call_param_key.split('.')   # should contain at least one element
+            last_syllable = key_syllables.pop()         # in the edge case of one element, the list becomes empty after popping
+
+            dict_ptr = call_params
+            for key_syllable in key_syllables:
+                if key_syllable not in dict_ptr:        # explicit path vivification
+                    dict_ptr[key_syllable] = {}
+                dict_ptr = dict_ptr[key_syllable]       # iterative descent
+
+            dict_ptr[last_syllable] = call_param_value  # either last or the only scalar is added in the end
 
             i += 1
 
@@ -98,7 +99,7 @@ if __name__ == '__main__':
 
     ## When the entry's code is run as a script, perform local tests:
     #
-    cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A --p5 --p6=60 p7= p6=600 --p8.key1=v81 --p8.key2=82 method_B method_C --p9=999 -p10'
+    cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A --p5 --p6=60 p7= p6=600 --p8.key1=v81 --p8.key2=82 method_B method_C --p9.alpha.beta=999 -p9.alpha.gamma=boo -p10'
     parsed_cmd = parse( cmd_line.split(' ') )
 
     from pprint import pprint
