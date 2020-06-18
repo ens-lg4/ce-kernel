@@ -3,6 +3,16 @@
 # This entry knows how to download a file given a URL and can create a holding entry for it.
 #
 # Parameterizations of this entry can be recipes for downloading specific things.
+#
+# Create a new parameterized recipe:
+#   clip add_entry --entry_name=lastpage_recipe --data.parent_entry_name=download_entry --data.url='https://www.1112.net/lastpage.html' --data.entry_name=lastpage_downloaded --data.file_name=lp.html --data.remark='A specific parameterized downloader'
+#
+# Activate the recipe, i.e. download the file into a new entry:
+#   clip byname --entry_name=lastpage_recipe download
+#
+# Clean up:
+#   clip delete_entry --entry_name=lastpage_downloaded
+#   clip delete_entry --entry_name=lastpage_recipe
 
 import os
 
