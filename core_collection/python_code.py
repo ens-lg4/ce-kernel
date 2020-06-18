@@ -60,8 +60,7 @@ def add_entry(entry_name, data=None, __entry__=None, __kernel__=None):
 
     # Update parameters of the new entry:
     new_entry = __kernel__.bypath(new_entry_full_path)
-    new_entry.parameters_loaded().update( data )
-    new_entry.update()
+    new_entry.update( data )
 
     return new_entry
 

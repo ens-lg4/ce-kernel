@@ -132,8 +132,15 @@ class Entry:
         return self.own_parameters
 
 
-    def update(self):   # FIXME: currently ignoring parameters_struct_path
+    def update(self, data=None):   # FIXME: currently ignoring parameters_struct_path
+        """
+            Usage example:
+                clip byname --entry_name=xyz update --data.baz=beta
+        """
         own_parameters = self.parameters_loaded()
+        if data:
+            own_parameters.update( data)
+
         parameters_rel_path, parameters_struct_path = self.kernel.parameters_location
         utils.store_structure_to_json_file(own_parameters, self.get_path(parameters_rel_path))
 
