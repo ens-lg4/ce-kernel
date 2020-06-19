@@ -1,6 +1,10 @@
 {
-    "parent_entry_name" : "params_entry",
-    "vorona"    : "CORVUS",
-    "pchela"    : "APIS",
-    "jadro"     : "NUCLEUS"
+    "parent_entry_name": "params_entry",
+    "vorona": "CORVUS",
+    "pchela": "APIS",
+    "jadro": "NUCLEUS",
+    "tags": [
+        "latin",
+        "dictionary"
+    ]
 }

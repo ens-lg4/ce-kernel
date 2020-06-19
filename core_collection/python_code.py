@@ -14,6 +14,9 @@ def show_map(name_2_path):
 
 def bytags(tags, name_2_path, collections_searchpath, __entry__=None, __kernel__=None):
     """ Find ONE (the first encountered) object given a subset of tags.
+
+        Usage example:
+            clip bytags --tags=dictionary,-english get_path
     """
 
     if type(tags) not in (list, set):   # an awkward way to test for scalarness

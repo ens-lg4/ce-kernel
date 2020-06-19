@@ -1,6 +1,10 @@
 {
-    "parent_entry_name" : "latin",
-    "vorona"    : "CROW",
-    "pchela"    : "BEE",
-    "mashina"   : "CAR"
+    "parent_entry_name": "latin",
+    "vorona": "CROW",
+    "pchela": "BEE",
+    "mashina": "CAR",
+    "tags": [
+        "english",
+        "dictionary"
+    ]
 }
