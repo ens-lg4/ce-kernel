@@ -54,7 +54,7 @@ def parse(arglist):
 
         eq_position = undashed.find('=')
         if eq_position>0:
-            param_name, param_value = undashed[0:eq_position], to_num_or_not_to_num(undashed[eq_position+1:])
+            param_name, param_value = undashed[0:eq_position], undashed[eq_position+1:]
         else:
             param_name, param_value = undashed, 'yes'
         return (param_name, param_value)
@@ -82,7 +82,11 @@ def parse(arglist):
                     dict_ptr[key_syllable] = {}
                 dict_ptr = dict_ptr[key_syllable]       # iterative descent
 
-            dict_ptr[last_syllable] = call_param_value  # either last or the only scalar is added in the end
+            delimiter = last_syllable[-1]
+            if delimiter in ",:; ":         # split the list
+                dict_ptr[last_syllable[:-1]] = [to_num_or_not_to_num(el) for el in call_param_value.split(delimiter)]
+            else:                           # treat it as a single scalar
+                dict_ptr[last_syllable] = to_num_or_not_to_num(call_param_value)
 
             i += 1
 
