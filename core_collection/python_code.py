@@ -12,6 +12,36 @@ def show_map(name_2_path):
     pprint(name_2_path)
 
 
+def bytags(tags, name_2_path, collections_searchpath, __entry__=None, __kernel__=None):
+    """ Find ONE (the first encountered) object given a subset of tags.
+    """
+
+    if type(tags) not in (list, set):   # an awkward way to test for scalarness
+        tags = tags.split(',')
+    query_tags_set  = set(tags)
+
+    for relative_path in name_2_path.values():
+        full_path = __entry__.get_path(relative_path)
+        candidate_object    = __kernel__.bypath(full_path)
+        candidate_tags_set  = set(candidate_object['tags'] or [])
+        if query_tags_set <= candidate_tags_set:
+            return candidate_object
+
+    if collections_searchpath:
+        for subcollection_name in collections_searchpath:
+            if subcollection_name.find('/')>=0:
+                subcollection_object    = __kernel__.bypath(subcollection_name)
+            else:
+                subcollection_local     = name_2_path.get(subcollection_name)
+                subcollection_object    = __kernel__.byname(subcollection_name, __entry__ if subcollection_local else None)
+
+            found_object                = subcollection_object.call('bytags', { 'tags': tags })
+            if found_object:
+                return found_object
+
+    return None
+
+
 def byname(entry_name, name_2_path, collections_searchpath, __entry__=None, __kernel__=None):
     """ Find a relative path of the named entry in this collection entry's index.
     """
