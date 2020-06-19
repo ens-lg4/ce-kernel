@@ -53,11 +53,12 @@ def parse(arglist):
         undashed = undashed[1:] if undashed.startswith('-') else undashed   # remove another dash
 
         eq_position = undashed.find('=')
-        if eq_position>0:
+        value_given = eq_position>0
+        if value_given:
             param_name, param_value = undashed[0:eq_position], undashed[eq_position+1:]
         else:
             param_name, param_value = undashed, 'yes'
-        return (param_name, param_value)
+        return (param_name, param_value, value_given)
 
 
     i = 0
@@ -71,7 +72,7 @@ def parse(arglist):
         pipe_calls.append( [ call_method, call_params ] )
         i += 1
         while i<len(arglist) and is_param_like(arglist[i]):
-            call_param_key, call_param_value = undash_unpair(arglist[i])
+            call_param_key, call_param_value, value_given = undash_unpair(arglist[i])
 
             key_syllables = call_param_key.split('.')   # should contain at least one element
             last_syllable = key_syllables.pop()         # in the edge case of one element, the list becomes empty after popping
@@ -83,8 +84,11 @@ def parse(arglist):
                 dict_ptr = dict_ptr[key_syllable]       # iterative descent
 
             delimiter = last_syllable[-1]
-            if delimiter in ",:; ":         # split the list
-                dict_ptr[last_syllable[:-1]] = [to_num_or_not_to_num(el) for el in call_param_value.split(delimiter)]
+            if delimiter in ",:; ":
+                if value_given:             # split the list
+                    dict_ptr[last_syllable[:-1]] = [to_num_or_not_to_num(el) for el in call_param_value.split(delimiter)]
+                else:                       # special syntax to denote an empty list
+                    dict_ptr[last_syllable[:-1]] = []
             else:                           # treat it as a single scalar
                 dict_ptr[last_syllable] = to_num_or_not_to_num(call_param_value)
 
@@ -103,7 +107,7 @@ if __name__ == '__main__':
 
     ## When the entry's code is run as a script, perform local tests:
     #
-    cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A --p5 --p6=60 p7= p6=600 --p8.key1=v81 --p8.key2=82 method_B method_C --p9.alpha.beta=999 -p9.alpha.gamma=boo -p10'
+    cmd_line = 'ce --u1= --u2=v2 -u3=33 u2=override2 -u4 method_A --p5 --p6=60 p7= p6=600 --p8.key1=v81 --p8.key2=82 method_B method_C --p9.alpha.beta=999 -p9.alpha.gamma=boo -p10 --data.empty1 --data.empty2= --data.empty3,= --data.empty4,'
     parsed_cmd = parse( cmd_line.split(' ') )
 
     from pprint import pprint
