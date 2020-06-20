@@ -1,9 +1,17 @@
 {
-    "n" : 5,
-    "alternative" : {
-        "place" : [
-            { "n" : 7 },
-            { "n" : 6 }
+    "n": 5,
+    "alternative": {
+        "place": [
+            {
+                "n": 7
+            },
+            {
+                "n": 6
+            }
         ]
-    }
+    },
+    "tags": [
+        "functions",
+        "iterative"
+    ]
 }

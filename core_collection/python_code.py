@@ -42,31 +42,36 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
         parsed_query        = query
         positive_tags_set   = parsed_query.get('positive_tags_set', set())
         negative_tags_set   = parsed_query.get('negative_tags_set', set())
-        equality_dict       = parsed_query.get('equality_dict', dict())
-        inequality_dict     = parsed_query.get('inequality_dict', dict())
+        check_list          = parsed_query.get('check_list', [])
     else:                   # parsing the query for the first time
         positive_tags_set   = set()
         negative_tags_set   = set()
-        equality_dict       = dict()
-        inequality_dict     = dict()
+        check_list          = []
         parsed_query = {
             'positive_tags_set':    positive_tags_set,
             'negative_tags_set':    negative_tags_set,
-            'equality_dict':        equality_dict,
-            'inequality_dict':      inequality_dict,
+            'check_list':           check_list,
         }
 
         conditions = query.split(',')
 
         import re
         for condition in conditions:
-            matchObj = re.match('([\w\.]+)(:|<>)(-?[\w\.]+)', condition)
+            matchObj = re.match('([\w\.]+)(:|<>|<|>|<:|>:)(-?[\w\.]+)', condition)
             if matchObj:
                 k,v = matchObj.group(1), to_num_or_not_to_num(matchObj.group(3))
                 if matchObj.group(2)==':':
-                    equality_dict[k] = v
+                    check_list.append( lambda x : x[k]==v )
                 elif matchObj.group(2)=='<>':
-                    inequality_dict[k] = v
+                    check_list.append( lambda x : x[k]!=v )
+                elif matchObj.group(2)=='<':
+                    check_list.append( lambda x : x[k]<v )
+                elif matchObj.group(2)=='>':
+                    check_list.append( lambda x : x[k]>v )
+                elif matchObj.group(2)=='<:':
+                    check_list.append( lambda x : x[k]<=v )
+                elif matchObj.group(2)=='>:':
+                    check_list.append( lambda x : x[k]>=v )
 
             elif condition[0] in '!^-':
                 negative_tags_set.add( condition[1:] )
@@ -81,12 +86,8 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
         candidate_tags_set  = set(candidate_object['tags'] or [])
         if (positive_tags_set <= candidate_tags_set) and negative_tags_set.isdisjoint(candidate_tags_set):
             candidate_still_ok = True
-            for k in equality_dict.keys():
-                if candidate_object[k] != equality_dict[k]:
-                    candidate_still_ok = False
-                    break
-            for k in inequality_dict.keys():
-                if candidate_object[k] == inequality_dict[k]:
+            for check in check_list:
+                if not check(candidate_object):
                     candidate_still_ok = False
                     break
             if candidate_still_ok:
