@@ -18,6 +18,7 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
         Usage examples:
             clip byquery --query=dictionary,-english get_path
             clip byquery --query=n:4 get_path
+            clip byquery '--query=dictionary,pchela<>BEE' get_path
     """
 
     def to_num_or_not_to_num(x):
@@ -42,21 +43,31 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
         positive_tags_set   = parsed_query.get('positive_tags_set', set())
         negative_tags_set   = parsed_query.get('negative_tags_set', set())
         equality_dict       = parsed_query.get('equality_dict', dict())
+        inequality_dict     = parsed_query.get('inequality_dict', dict())
     else:                   # parsing the query for the first time
         positive_tags_set   = set()
         negative_tags_set   = set()
         equality_dict       = dict()
+        inequality_dict     = dict()
         parsed_query = {
             'positive_tags_set':    positive_tags_set,
             'negative_tags_set':    negative_tags_set,
             'equality_dict':        equality_dict,
+            'inequality_dict':      inequality_dict,
         }
 
         conditions = query.split(',')
+
+        import re
         for condition in conditions:
-            if ':' in condition:
-                k,v = condition.split(':')
-                equality_dict[k] = to_num_or_not_to_num(v)
+            matchObj = re.match('([\w\.]+)(:|<>)(-?[\w\.]+)', condition)
+            if matchObj:
+                k,v = matchObj.group(1), to_num_or_not_to_num(matchObj.group(3))
+                if matchObj.group(2)==':':
+                    equality_dict[k] = v
+                elif matchObj.group(2)=='<>':
+                    inequality_dict[k] = v
+
             elif condition[0] in '!^-':
                 negative_tags_set.add( condition[1:] )
             else:
@@ -72,6 +83,10 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
             candidate_still_ok = True
             for k in equality_dict.keys():
                 if candidate_object[k] != equality_dict[k]:
+                    candidate_still_ok = False
+                    break
+            for k in inequality_dict.keys():
+                if candidate_object[k] == inequality_dict[k]:
                     candidate_still_ok = False
                     break
             if candidate_still_ok:
