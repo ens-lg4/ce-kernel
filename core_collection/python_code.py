@@ -12,27 +12,73 @@ def show_map(name_2_path):
     pprint(name_2_path)
 
 
-def bytags(tags, name_2_path, collections_searchpath, __entry__=None, __kernel__=None):
-    """ Find ONE (the first encountered) object given a subset of tags.
+def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel__=None):
+    """ Find ONE (the first encountered) object given a query
 
-        Usage example:
-            clip bytags --tags=dictionary,-english get_path
+        Usage examples:
+            clip byquery --query=dictionary,-english get_path
+            clip byquery --query=n:4 get_path
     """
 
-    if type(tags) not in (list, set):   # an awkward way to test for scalarness
-        tags = tags.split(',')
+    def to_num_or_not_to_num(x):
+        "Convert the parameter to a number if it looks like it"
 
-    # FIXME: in future avoid re-parsing in multiple recursive invocations:
-    positive_tags_set = set( [t for t in tags if t[0] not in '!^-'] )
-    negative_tags_set = set( [t[1:] for t in tags if t[0] in '!^-'] )
+        try:
+            x_int = int(x)
+            if type(x_int)==int:
+                return x_int
+        except:
+            try:
+                x_float = float(x)
+                if type(x_float)==float:
+                    return x_float
+            except:
+                pass
 
+        return x
+
+    if type(query)==dict:   # an already parsed query
+        parsed_query        = query
+        positive_tags_set   = parsed_query.get('positive_tags_set', set())
+        negative_tags_set   = parsed_query.get('negative_tags_set', set())
+        equality_dict       = parsed_query.get('equality_dict', dict())
+    else:                   # parsing the query for the first time
+        positive_tags_set   = set()
+        negative_tags_set   = set()
+        equality_dict       = dict()
+        parsed_query = {
+            'positive_tags_set':    positive_tags_set,
+            'negative_tags_set':    negative_tags_set,
+            'equality_dict':        equality_dict,
+        }
+
+        conditions = query.split(',')
+        for condition in conditions:
+            if ':' in condition:
+                k,v = condition.split(':')
+                equality_dict[k] = to_num_or_not_to_num(v)
+            elif condition[0] in '!^-':
+                negative_tags_set.add( condition[1:] )
+            else:
+                positive_tags_set.add( condition )
+
+    # Applying the query:
+    #
     for relative_path in name_2_path.values():
         full_path = __entry__.get_path(relative_path)
         candidate_object    = __kernel__.bypath(full_path)
         candidate_tags_set  = set(candidate_object['tags'] or [])
         if (positive_tags_set <= candidate_tags_set) and negative_tags_set.isdisjoint(candidate_tags_set):
-            return candidate_object
+            candidate_still_ok = True
+            for k in equality_dict.keys():
+                if candidate_object[k] != equality_dict[k]:
+                    candidate_still_ok = False
+                    break
+            if candidate_still_ok:
+                return candidate_object
 
+    # Recursion into collections:
+    #
     if collections_searchpath:
         for subcollection_name in collections_searchpath:
             if subcollection_name.find('/')>=0:
@@ -41,7 +87,7 @@ def bytags(tags, name_2_path, collections_searchpath, __entry__=None, __kernel__
                 subcollection_local     = name_2_path.get(subcollection_name)
                 subcollection_object    = __kernel__.byname(subcollection_name, __entry__ if subcollection_local else None)
 
-            found_object                = subcollection_object.call('bytags', { 'tags': tags })
+            found_object                = subcollection_object.call('byquery', { 'query': parsed_query })
             if found_object:
                 return found_object
 
