@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
-# This entry knows how to download a file given a URL and can create a holding entry for it.
-#
-# Parameterizations of this entry can be recipes for downloading specific things.
-#
-# Create a new parameterized recipe:
-#   clip add_entry --entry_name=examplepage_recipe --data.parent_entry_name=download_entry --data.url='http://example.com/' --data.entry_name=examplepage_downloaded --data.file_name=example.html --data.remark='A specific parameterized downloader'
-#
-# Activate the recipe, i.e. download the file into a new entry:
-#   clip byname --entry_name=examplepage_recipe , download
-#
-# Clean up:
-#   clip delete_entry --entry_name=examplepage_downloaded
-#   clip delete_entry --entry_name=examplepage_recipe
+""" This entry knows how to download a file given a URL and can create a holding entry for it.
+
+Parameterizations of this entry can be recipes for downloading specific things.
+
+Create a new parameterized recipe:
+    clip add_entry --entry_name=examplepage_recipe --data.parent_entry_name=download_entry --data.url='http://example.com/' --data.entry_name=examplepage_downloaded --data.file_name=example.html --data.remark='A specific parameterized downloader'
+
+Activate the recipe, i.e. download the file into a new entry:
+    clip byname --entry_name=examplepage_recipe , download
+
+Clean up:
+    clip delete_entry --entry_name=examplepage_downloaded
+    clip delete_entry --entry_name=examplepage_recipe
+"""
 
 import os
 
@@ -41,7 +42,7 @@ def download(url, entry_name, file_name, __kernel__):
 
 def download_to_path(url, target_path):
     """
-        Usage example:
+        Usage example: (assuming the entry has been added to the collection) :
             clip byname --entry_name=download_entry , download_to_path --url='http://example.com' --target_path=exmpl.html
     """
     print('url = "{}", target_path = "{}"'.format(url, target_path))
@@ -57,6 +58,10 @@ def wget(url, target_path):
 
 
 def curl(url, target_path):
+    """
+        Usage example (not assuming the entry has been added to the collection) :
+            clip bypath --path=working_collection/download_entry , curl --url='http://example.com' --target_path=exmpl.html
+    """
     return os.system('curl -o {} {}'.format(target_path, url))
 
 
