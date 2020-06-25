@@ -30,12 +30,14 @@ def download(url, entry_name, file_name, __kernel__):
         'remark':       'downloaded via URL'
     }
     target_path = __kernel__.chain( [
-                { 'method': 'working_collection' },
                 { 'method': 'add_entry', 'params': { 'entry_name' : entry_name, 'data': data} },
                 { 'method': 'get_path', 'params': {'file_name': file_name} },
         ]
     )
-    download_to_path(url, target_path)
+    if download_to_path(url, target_path) == 0:
+        return target_path
+    else:
+        return None
 
 
 def download_to_path(url, target_path):
