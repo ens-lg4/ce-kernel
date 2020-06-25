@@ -1,5 +1,6 @@
 {
     "name_2_path" : {
+        "pipeline_entry"        : "pipeline_entry",
         "cli_parser"            : "cli_parser",
         "job"                   : "job",
         "help"                  : "help",
