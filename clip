@@ -13,10 +13,10 @@ from class_entry import default_kernel_instance
 if __name__ == '__main__':
 
     ret_value = default_kernel_instance.chain( [
-                [ 'byname', { 'entry_name' : 'clip'} ],
-                [ 'get_arglist' ],
-                [ 'parse'       ],
-                [ 'chain'       ]
+                { 'method': 'byname', 'params': { 'entry_name' : 'clip'} },
+                { 'method': 'get_arglist' },
+                { 'method': 'parse'       },
+                { 'method': 'chain'       }
         ]
     )
 

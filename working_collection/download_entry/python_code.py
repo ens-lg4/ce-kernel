@@ -5,24 +5,24 @@
 # Parameterizations of this entry can be recipes for downloading specific things.
 #
 # Create a new parameterized recipe:
-#   clip add_entry --entry_name=lastpage_recipe --data.parent_entry_name=download_entry --data.url='https://www.1112.net/lastpage.html' --data.entry_name=lastpage_downloaded --data.file_name=lp.html --data.remark='A specific parameterized downloader'
+#   clip add_entry --entry_name=examplepage_recipe --data.parent_entry_name=download_entry --data.url='http://example.com/' --data.entry_name=examplepage_downloaded --data.file_name=example.html --data.remark='A specific parameterized downloader'
 #
 # Activate the recipe, i.e. download the file into a new entry:
-#   clip byname --entry_name=lastpage_recipe download
+#   clip byname --entry_name=examplepage_recipe download
 #
 # Clean up:
-#   clip delete_entry --entry_name=lastpage_downloaded
-#   clip delete_entry --entry_name=lastpage_recipe
+#   clip delete_entry --entry_name=examplepage_downloaded
+#   clip delete_entry --entry_name=examplepage_recipe
 
 import os
 
 def download(url, entry_name, file_name, __kernel__):
     """
         Usage example:
-            clip byname --entry_name=download_entry download --url='https://www.1112.net/lastpage.html' --entry_name=lastpage_downloaded --file_name=lp.html
+            clip byname --entry_name=download_entry download --url='https://example.com' --entry_name=examplepage_downloaded --file_name=example.html
 
         Clean up:
-            clip delete_entry --entry_name=lastpage_downloaded
+            clip delete_entry --entry_name=examplepage_downloaded
     """
     data = {
         'url':          url,
@@ -30,9 +30,9 @@ def download(url, entry_name, file_name, __kernel__):
         'remark':       'downloaded via URL'
     }
     target_path = __kernel__.chain( [
-                [ 'working_collection' ],
-                [ 'add_entry', { 'entry_name' : entry_name, 'data': data} ],
-                [ 'get_path', {'file_name': file_name} ],
+                { 'method': 'working_collection' },
+                { 'method': 'add_entry', 'params': { 'entry_name' : entry_name, 'data': data} },
+                { 'method': 'get_path', 'params': {'file_name': file_name} },
         ]
     )
     download_to_path(url, target_path)

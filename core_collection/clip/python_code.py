@@ -69,7 +69,7 @@ def parse(arglist):
         #
         call_method = arglist[i]
         call_params = {}
-        pipe_calls.append( [ call_method, call_params ] )
+        pipe_calls.append( { 'method': call_method, 'params': call_params } )
         i += 1
         while i<len(arglist) and is_param_like(arglist[i]):
             call_param_key, call_param_value, value_given = undash_unpair(arglist[i])

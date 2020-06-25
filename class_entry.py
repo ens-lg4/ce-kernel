@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.10'   # Try not to forget to update it!
+__version__ = '0.0.11'   # Try not to forget to update it!
 
 import os
 import utils
@@ -59,9 +59,9 @@ class MicroKernel:
         call_output = None
         passed_params = {}
 
-        for call_vector in chain:
-            call_method = call_vector[0]
-            call_params = call_vector[1] if len(call_vector)>1 else {}
+        for chain_link in chain:
+            call_method = chain_link['method']
+            call_params = chain_link.get('params', {})
             print("Call method: {}, Passed params: {}, Overriding params: {}".format(call_method, passed_params, call_params))
             mixed_params = utils.merged_dictionaries(passed_params, call_params)
 
