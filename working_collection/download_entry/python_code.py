@@ -30,16 +30,8 @@ def download(url, entry_name, file_name, __kernel__):
         'remark':       'downloaded via URL'
     }
 
-    pipeline_entry = __kernel__.byname('pipeline_entry')
-    target_path, _ = pipeline_entry.call('execute', { 'pipeline': [
-        {   'start_from': {
-                'method': 'add_entry',
-                'params': { 'entry_name' : entry_name, 'data': data}
-            },
-            'method': 'get_path',
-            'params': {'file_name': file_name}
-        }
-    ] } )
+    new_entry = __kernel__.working_collection().call('add_entry', { 'entry_name' : entry_name, 'data': data})
+    target_path = new_entry.get_path(file_name)
 
     if download_to_path(url, target_path) == 0:
         return target_path
