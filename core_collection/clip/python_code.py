@@ -43,7 +43,7 @@ def parse(arglist):
     def is_param_like(s):
         "Check that an argument looks like a param"
 
-        return s.startswith('-') or '=' in s
+        return s.startswith('-')
 
 
     def undash_unpair(s):
@@ -61,16 +61,32 @@ def parse(arglist):
         return (param_name, param_value, value_given)
 
 
+    import re
+
     i = 0
     pipe_calls = []
 
     while i<len(arglist):
-        ## Since the previous iteration stopped, we are looking at a method name
+        ## There may be a preceding label, check for it:
+        #
+        found_label = re.match('^(\w+):$', arglist[i])
+        if found_label:
+            call_label = found_label.group(1)
+            i += 1
+        else:
+            call_label = None   # make sure to clean it up
+
+        ## The mandatory method name:
         #
         call_method = arglist[i]
-        call_params = {}
-        pipe_calls.append( { 'method': call_method, 'params': call_params } )
         i += 1
+
+        call_params = {}
+        chain_link = { 'method': call_method, 'params': call_params }
+        if call_label:
+            chain_link['label'] = call_label
+        pipe_calls.append( chain_link )
+
         while i<len(arglist) and is_param_like(arglist[i]):
             call_param_key, call_param_value, value_given = undash_unpair(arglist[i])
 
@@ -84,7 +100,7 @@ def parse(arglist):
                 dict_ptr = dict_ptr[key_syllable]       # iterative descent
 
             delimiter = last_syllable[-1]
-            if delimiter in ",:; ":
+            if delimiter in ";, ":
                 if value_given:             # split the list
                     dict_ptr[last_syllable[:-1]] = [to_num_or_not_to_num(el) for el in call_param_value.split(delimiter)]
                 else:                       # special syntax to denote an empty list
