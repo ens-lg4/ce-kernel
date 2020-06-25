@@ -23,17 +23,15 @@ if __name__ == '__main__':
                 "label": "arglist_results",
             },
             "method": "parse",
-            "params": { "arglist:": "arglist_results.arglist" },
+            "params": { ":": "arglist_results" },
             "label": "parser_results",
         },
         {
             "start_from": pipeline_entry,
             "method": "execute",
-            "params": {
-                "pipeline:": "parser_results.pipeline"
-            }
+            "params": { ":": "parser_results" },
         }
     ] } )
 
-    print("clip result: {}".format(result[0]))
+    print("clip final result: {}".format(result[0]))
 
