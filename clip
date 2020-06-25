@@ -3,21 +3,37 @@
 """ CommanLine API of this framework.
 
 This script provides CommandLine API of the framework.
-Please run it without parameters to get help on syntax.
 
-Its source is also the simplest example of Python API.
+Its source is also an example of Python API.
 """
 
 from class_entry import default_kernel_instance
 
 if __name__ == '__main__':
 
-    ret_value = default_kernel_instance.chain( [
-                { 'method': 'byname', 'params': { 'entry_name' : 'clip'} },
-                { 'method': 'get_arglist' },
-                { 'method': 'parse'       },
-                { 'method': 'chain'       }
-        ]
-    )
+    pipeline_entry = default_kernel_instance.byname('pipeline_entry')
+    result, obj = pipeline_entry.call('execute', { 'pipeline': [
+        {
+            "start_from": {
+                "start_from": {
+                    "method": "byname",
+                    "params": { "entry_name" : "cli_parser2"},
+                },
+                "method": "get_arglist",
+                "label": "arglist_results",
+            },
+            "method": "parse",
+            "params": { "arglist:": "arglist_results.arglist" },
+            "label": "parser_results",
+        },
+        {
+            "start_from": pipeline_entry,
+            "method": "execute",
+            "params": {
+                "pipeline:": "parser_results.pipeline"
+            }
+        }
+    ] } )
 
-    exit(ret_value)
+    print("clip result: {}".format(result[0]))
+

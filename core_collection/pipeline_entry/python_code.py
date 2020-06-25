@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+import sys, os
+from os.path import dirname as dn
+sys.path.append( dn(dn(dn(os.path.realpath(__file__)))) )
+
+import utils
+
 
 def traverse(dictionary, key_path, complete=True):
     last_syllable = key_path.pop()          # in the edge case of one element, the list becomes empty after popping
@@ -18,20 +24,27 @@ def traverse(dictionary, key_path, complete=True):
 
 def execute(pipeline=None, result_cache=None, __kernel__=None):
 
+    wc = __kernel__.working_collection()
+    entry_type = type(wc)
+
     if result_cache == None:
         result_cache = {}
 
     if pipeline == None:
-        return __kernel__.working_collection()
+        return wc, wc
+
+    elif isinstance(pipeline, entry_type):
+        return pipeline, pipeline
 
     elif type(pipeline) == list:
+        result, obj = None, wc
         for sub_pipeline in pipeline:
-            result = execute(sub_pipeline, result_cache, __kernel__)                # recursion #1
-        return result   # only the last result gets returned
+            result, obj = execute(sub_pipeline, result_cache, __kernel__)           # recursion #1
+        return result, obj  # only the last result gets returned
 
     elif type(pipeline) == dict:
         
-        start_from  = execute(pipeline.get('start_from'), result_cache, __kernel__) # recursion #2
+        result, obj = execute(pipeline.get('start_from'), result_cache, __kernel__) # recursion #2, FIXME: result gets cached but ignored otherwise - it may have to be merged in?
         label       = pipeline.get('label')
         method      = pipeline['method']            # the only mandatory part
         param_layers= pipeline.get('params', [])
@@ -55,21 +68,36 @@ def execute(pipeline=None, result_cache=None, __kernel__=None):
                 else:
                     m_ptr[m_last_syll] = m_value
 
-        result = start_from.call(method, merged_params)
+        try:
+            result = obj.call(method, merged_params)
+        except NameError as method_not_found_e:
+            try:
+                entry_method_object = getattr(obj, method)
+                result = utils.free_access(entry_method_object, merged_params, class_method=True)
+            except AttributeError:
+                try:
+                    kernel_method_object = getattr(__kernel__, method)
+                    result = utils.free_access(kernel_method_object, merged_params, class_method=True)
+                except AttributeError:
+                    raise method_not_found_e
+
 
         if label != None:
             result_cache[label] = result
 
-        return result
+        if isinstance(result, entry_type):
+            obj = result
+
+        return result, obj
+
+    else:
+        raise(Exception("Unexpected type: pipeline = {}".format(pipeline)))
 
 
 if __name__ == '__main__':
 
     ## When the entry's code is run as a script, perform local tests:
     #
-    import sys, os
-    from os.path import dirname as dn
-    sys.path.append( dn(dn(dn(os.path.realpath(__file__)))) )
 
     from class_entry import default_kernel_instance as kernel
 

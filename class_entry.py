@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.0.11'   # Try not to forget to update it!
+__version__ = '0.1.0'   # Try not to forget to update it!
 
 import os
 import utils
@@ -27,7 +27,7 @@ class MicroKernel:
     def bypath(self, path, *args, **kwargs):
         """
             Usage example:
-                clip bypath --path=foo_entry foo --alpha=12 --beta=23 --gamma=34
+                clip bypath --path=foo_entry , foo --alpha=12 --beta=23 --gamma=34
         """
         print("KERNEL.bypath({}, {}, {})".format(path, args, kwargs))
         return Entry(*args, **kwargs, entry_path=path, kernel=self)
@@ -41,7 +41,7 @@ class MicroKernel:
     def byname(self, entry_name, collection_object=None):
         """
             Usage example:
-                clip byname --entry_name=iterative_functions factorial --n=6 fibonacci --n=8
+                clip byname --entry_name=iterative_functions , factorial --n=6 , fibonacci --n=8
         """
         collection_object = collection_object or self.working_collection()
 
@@ -112,7 +112,7 @@ class Entry:
     def get_path(self, file_name=None):
         """
             Usage example:
-                clip byname --entry_name=words_collection get_path
+                clip byname --entry_name=words_collection , get_path
         """
         if file_name:
             return os.path.join(self.entry_path, file_name)
@@ -135,7 +135,7 @@ class Entry:
     def update(self, data=None):   # FIXME: currently ignoring parameters_struct_path
         """
             Usage example:
-                clip byname --entry_name=xyz update --data.baz=beta
+                clip byname --entry_name=xyz , update --data.baz=beta
         """
         own_parameters = self.parameters_loaded()
         if data:

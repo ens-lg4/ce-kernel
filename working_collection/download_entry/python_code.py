@@ -8,7 +8,7 @@
 #   clip add_entry --entry_name=examplepage_recipe --data.parent_entry_name=download_entry --data.url='http://example.com/' --data.entry_name=examplepage_downloaded --data.file_name=example.html --data.remark='A specific parameterized downloader'
 #
 # Activate the recipe, i.e. download the file into a new entry:
-#   clip byname --entry_name=examplepage_recipe download
+#   clip byname --entry_name=examplepage_recipe , download
 #
 # Clean up:
 #   clip delete_entry --entry_name=examplepage_downloaded
@@ -19,7 +19,7 @@ import os
 def download(url, entry_name, file_name, __kernel__):
     """
         Usage example:
-            clip byname --entry_name=download_entry download --url='https://example.com' --entry_name=examplepage_downloaded --file_name=example.html
+            clip byname --entry_name=download_entry , download --url='https://example.com' --entry_name=examplepage_downloaded --file_name=example.html
 
         Clean up:
             clip delete_entry --entry_name=examplepage_downloaded
@@ -29,11 +29,18 @@ def download(url, entry_name, file_name, __kernel__):
         'file_name':    file_name,
         'remark':       'downloaded via URL'
     }
-    target_path = __kernel__.chain( [
-                { 'method': 'add_entry', 'params': { 'entry_name' : entry_name, 'data': data} },
-                { 'method': 'get_path', 'params': {'file_name': file_name} },
-        ]
-    )
+
+    pipeline_entry = __kernel__.byname('pipeline_entry')
+    target_path, _ = pipeline_entry.call('execute', { 'pipeline': [
+        {   'start_from': {
+                'method': 'add_entry',
+                'params': { 'entry_name' : entry_name, 'data': data}
+            },
+            'method': 'get_path',
+            'params': {'file_name': file_name}
+        }
+    ] } )
+
     if download_to_path(url, target_path) == 0:
         return target_path
     else:
@@ -43,7 +50,7 @@ def download(url, entry_name, file_name, __kernel__):
 def download_to_path(url, target_path):
     """
         Usage example:
-            clip byname --entry_name=download_entry download_to_path --url='http://example.com' --target_path=exmpl.html
+            clip byname --entry_name=download_entry , download_to_path --url='http://example.com' --target_path=exmpl.html
     """
     print('url = "{}", target_path = "{}"'.format(url, target_path))
     return wget(url, target_path)
@@ -52,7 +59,7 @@ def download_to_path(url, target_path):
 def wget(url, target_path):
     """
         Usage example (not assuming the entry has been added to the collection) :
-            clip bypath --path=working_collection/download_entry wget --url='http://example.com' --target_path=exmpl.html
+            clip bypath --path=working_collection/download_entry , wget --url='http://example.com' --target_path=exmpl.html
     """
     return os.system('wget -O {} {}'.format(target_path, url))
 
