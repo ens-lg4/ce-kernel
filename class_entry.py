@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.1.0'   # Try not to forget to update it!
+__version__ = '0.1.1'   # Try not to forget to update it!
 
 import os
 import utils
@@ -49,47 +49,6 @@ class MicroKernel:
 
         return collection_object.call('byname', { 'entry_name' : entry_name} )
 
-
-    def chain(self, chain, start_object=None):
-
-        current_object = start_object or self.working_collection()
-
-        print("KERNEL.chain({} starting from {})".format(chain, current_object.get_name()))
-
-        call_output = None
-        passed_params = {}
-
-        for chain_link in chain:
-            call_method = chain_link['method']
-            call_params = chain_link.get('params', {})
-            print("Call method: {}, Passed params: {}, Overriding params: {}".format(call_method, passed_params, call_params))
-            mixed_params = utils.merged_dictionaries(passed_params, call_params)
-
-            try:
-                call_output = current_object.call(call_method, mixed_params )
-            except NameError as method_not_found_e:
-                try:
-                    entry_method_object = getattr(current_object, call_method)
-                    call_output = utils.free_access(entry_method_object, mixed_params, class_method=True)
-                except AttributeError:
-                    try:
-                        kernel_method_object = getattr(self, call_method)
-                        call_output = utils.free_access(kernel_method_object, mixed_params, class_method=True)
-                    except AttributeError:
-                        raise method_not_found_e
-
-            print("Call output: {}".format(call_output))
-            if isinstance(call_output, Entry):
-                current_object = call_output
-                passed_params = {}
-                print("Output is an Entry, switching to it")
-            elif isinstance(call_output, dict):
-                passed_params = call_output
-                print("Output is a dictionary, passing it for a merge")
-            else:
-                print("Output is neither an Entry nor a dictionary, staying with the current one")
-
-        return call_output
 
 
 default_kernel_instance = MicroKernel()
