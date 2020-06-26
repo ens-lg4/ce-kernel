@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
-__version__ = '0.1.1'   # Try not to forget to update it!
+__version__ = '0.1.2'   # Try not to forget to update it!
 
 import os
 import utils
 
 
 core_repository_path = os.path.dirname( os.path.realpath(__file__) )    # depends on relative position of THIS FILE in the repository
-working_collection_path = os.path.join(core_repository_path, 'working_collection')
 
 
 class MicroKernel:
@@ -24,6 +23,18 @@ class MicroKernel:
         return __version__
 
 
+    def get_kernel_path(self, file_name=None):
+        """
+            Usage example:
+                clip get_kernel_path
+                clip get_kernel_path --file_name=working_collection
+        """
+        if file_name:
+            return os.path.join(core_repository_path, file_name)
+        else:
+            return core_repository_path
+
+
     def bypath(self, path, *args, **kwargs):
         """
             Usage example:
@@ -34,7 +45,7 @@ class MicroKernel:
 
 
     def working_collection(self):
-        self.cached_wc = self.cached_wc or self.bypath( working_collection_path )
+        self.cached_wc = self.cached_wc or self.bypath( self.get_kernel_path('working_collection') )
         return self.cached_wc
 
 
