@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.1.2'   # Try not to forget to update it!
+__version__ = '0.1.3'   # Try not to forget to update it!
 
 import os
 import utils
@@ -173,6 +173,37 @@ class Entry:
         return function_object
 
 
+    def help(self, method_name=None):
+        """
+            Usage example:
+                clip byname --entry_name=download_entry , help
+                clip byname --entry_name=download_entry , help --method_name=download
+        """
+        print( "Entry: {}".format( self.get_name() ) )
+        print( "EntryPath: {}".format( self.get_path() ) )
+
+        if method_name:
+            print( "Method: {}".format( method_name ) )
+            try:
+                ancestry_path   = []
+                function_object = self.reach_method(method_name, _ancestry_path=ancestry_path) # the method may not be reachable
+                print( "MethodPath: {}".format( function_object.__module__ ))
+                print( "Ancestry path: {}".format( ' --> '.join(ancestry_path) ))
+                print( "DocString: {}".format( function_object.__doc__ ))
+            except Exception as e:
+                print( str(e) )
+        else:
+            try:
+                module_object   = self.get_module_object()  # the entry may not contain any code...
+                doc_string      = module_object.__doc__     # the module may not contain any DocString...
+                print("DocString: {}".format(doc_string))
+            except ImportError:
+                parent_may_know = ", but you may want to check its parent: "+self.parent_entry.get_name() if self.parent_loaded() else ""
+                print("This entry has no code of its own" + parent_may_know)
+            except Exception as e:
+                print( str(e) )
+
+
     def generate_merged_parameters(self):
         own_parameters = self.parameters_loaded()
 
@@ -290,6 +321,6 @@ if __name__ == '__main__':
     print(gaelic_entry)
     print("")
 
-    help_entry = default_kernel_instance.byname('help')
-    help_entry.call('entry', { 'entry_name': 'kaware'})
-    help_entry.call('method', { 'entry_name': 'cli_parser', 'method_name': 'cli_parse'})
+    download_entry = default_kernel_instance.byname('download_entry')
+    download_entry.help()
+    download_entry.help(method_name='download')
