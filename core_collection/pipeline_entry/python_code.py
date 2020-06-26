@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 
-import sys, os
-from os.path import dirname as dn
-sys.path.append( dn(dn(dn(os.path.realpath(__file__)))) )
-
-import utils
-
 
 def traverse(dictionary, key_path, complete=True):
     last_syllable = key_path.pop()          # in the edge case of one element, the list becomes empty after popping
@@ -23,6 +17,10 @@ def traverse(dictionary, key_path, complete=True):
 
 
 def execute(pipeline=None, result_cache=None, __kernel__=None):
+
+    import sys
+    sys.path.append( __kernel__.get_kernel_path() )
+    import utils
 
     wc = __kernel__.working_collection()
     entry_type = type(wc)
