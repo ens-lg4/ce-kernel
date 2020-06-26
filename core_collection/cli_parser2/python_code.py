@@ -82,7 +82,7 @@ def parse(arglist):
                 call_param_key      = matched_paramref.group(1)
                 call_param_value    = matched_paramref.group(2)
             else:
-                matched_parampair = re.match('^-?-?([\w\.]+)([\ ,;]?)=(.*)$', arglist[i])
+                matched_parampair = re.match('^-?-?([\w\.]+)([\ ,;:]?)=(.*)$', arglist[i])
                 if matched_parampair:
                     call_param_key      = matched_parampair.group(1)
                     delimiter           = matched_parampair.group(2)
