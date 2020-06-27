@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.1.4'   # Try not to forget to update it!
+__version__ = '0.1.5'   # Try not to forget to update it!
 
 import os
 import utils
@@ -230,15 +230,15 @@ class Entry:
                 '__entry__'     : self,
             } )
 
-            result = utils.free_access(function_object, merged_params)
+            result = utils.free_access(function_object, [], merged_params)
         except NameError as method_not_found_e:
             try:
                 entry_method_object = getattr(self, function_name)
-                result = utils.free_access(entry_method_object, call_specific_params, class_method=True)
+                result = utils.free_access(entry_method_object, [], call_specific_params, class_method=True)
             except AttributeError:
                 try:
                     kernel_method_object = getattr(self.kernel, function_name)
-                    result = utils.free_access(kernel_method_object, call_specific_params, class_method=True)
+                    result = utils.free_access(kernel_method_object, [], call_specific_params, class_method=True)
                 except AttributeError:
                     raise method_not_found_e
 
