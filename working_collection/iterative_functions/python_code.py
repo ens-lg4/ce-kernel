@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
-# Example iterative functions
+""" Examples of iterative functions
+"""
 
 
 def fibonacci(n):
     """ Iterative implementation of the fibonacci(n) function
+
+        Usage example:
+            clip byname iterative_functions , fibonacci 10
     """
 
     a, b = 0, 1
@@ -15,7 +19,11 @@ def fibonacci(n):
 
 def factorial(n):
     """ Iterative implementation of the factorial(n) function
+
+        Usage example:
+            clip byname iterative_functions , factorial 6
     """
+
 
     prod = 1
     for i in range(1,n+1):

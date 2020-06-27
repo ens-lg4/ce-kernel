@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
-# Example recursive functions
+""" Examples of recursive functions
+"""
 
 
 def fibonacci(n):
     """ Recursive implementation of the fibonacci(n) function
+
+        Usage example:
+            clip byname recursive_functions , fibonacci 9
     """
 
     if n==0 or n==1:
@@ -15,6 +19,9 @@ def fibonacci(n):
 
 def factorial(n):
     """ Recursive implementation of the factorial(n) function
+
+        Usage example:
+            clip byname recursive_functions , factorial 5
     """
 
     if n<1:
