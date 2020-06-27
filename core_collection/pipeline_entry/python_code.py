@@ -49,6 +49,7 @@ def execute(pipeline=None, result_cache=None, __kernel__=None):
         result, obj = execute(pipeline.get('start_from'), result_cache, __kernel__) # recursion #3, FIXME: result gets cached but ignored otherwise - it may have to be merged in?
         label       = pipeline.get('label')
         method      = pipeline['method']            # the only mandatory part
+        pos_params  = pipeline.get('pos_params', [])
         param_layers= pipeline.get('params', [])
 
         if type(param_layers)==dict:
@@ -70,7 +71,7 @@ def execute(pipeline=None, result_cache=None, __kernel__=None):
                 else:
                     m_ptr[m_last_syll] = m_value
 
-        result = obj.call(method, merged_params)
+        result = obj.call(method, merged_params, pos_params)
 
         if label != None:
             result_cache[label] = result

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.1.5'   # Try not to forget to update it!
+__version__ = '0.1.6'   # Try not to forget to update it!
 
 import os
 import utils
@@ -213,13 +213,14 @@ class Entry:
             return own_parameters
 
 
-    def call(self, function_name, call_specific_params=None, entry_wide_params=None):
+    def call(self, function_name, call_specific_params=None, pos_params=None, entry_wide_params=None):
         """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
             The function can be declared as having positional args, named args with defaults and possibly also **kwargs.
         """
 
         try:
+            pos_params          = pos_params or []
             function_object     = self.reach_method(function_name)
 
             entry_wide_params   = entry_wide_params or self.generate_merged_parameters()
@@ -230,15 +231,15 @@ class Entry:
                 '__entry__'     : self,
             } )
 
-            result = utils.free_access(function_object, [], merged_params)
+            result = utils.free_access(function_object, pos_params, merged_params)
         except NameError as method_not_found_e:
             try:
                 entry_method_object = getattr(self, function_name)
-                result = utils.free_access(entry_method_object, [], call_specific_params, class_method=True)
+                result = utils.free_access(entry_method_object, pos_params, call_specific_params, class_method=True)
             except AttributeError:
                 try:
                     kernel_method_object = getattr(self.kernel, function_name)
-                    result = utils.free_access(kernel_method_object, [], call_specific_params, class_method=True)
+                    result = utils.free_access(kernel_method_object, pos_params, call_specific_params, class_method=True)
                 except AttributeError:
                     raise method_not_found_e
 
