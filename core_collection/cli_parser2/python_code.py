@@ -80,16 +80,16 @@ def parse(arglist):
         top_links.append( chain_link )
 
         while i<len(arglist) and arglist[i] not in (',', ',,'):
-            if arglist[i]=='' or arglist[i][0]!='-':
-                call_pos_params.append( arglist[i] )
+            if not arglist[i].startswith('--'):
+                call_pos_params.append( to_num_or_not_to_num(arglist[i]) )
             else:
                 call_param_key = None
-                matched_paramref = re.match('^--?([\w\.]*:)([\w\.]+)$', arglist[i])
+                matched_paramref = re.match('^--([\w\.]*:)([\w\.]+)$', arglist[i])
                 if matched_paramref:
                     call_param_key      = matched_paramref.group(1)
                     call_param_value    = matched_paramref.group(2)
                 else:
-                    matched_parampair = re.match('^--?([\w\.]+)([\ ,;:]?)=(.*)$', arglist[i])
+                    matched_parampair = re.match('^--([\w\.]+)([\ ,;:]?)=(.*)$', arglist[i])
                     if matched_parampair:
                         call_param_key      = matched_parampair.group(1)
                         delimiter           = matched_parampair.group(2)
@@ -99,7 +99,7 @@ def parse(arglist):
                         else:
                             call_param_value    = to_num_or_not_to_num(call_param_value)
                     else:
-                        matched_paramsingle = re.match('^--?([\w\.]+)([,-]?)$', arglist[i])
+                        matched_paramsingle = re.match('^--([\w\.]+)([,-]?)$', arglist[i])
                         if matched_paramsingle:
                             call_param_key      = matched_paramsingle.group(1)
                             if matched_paramsingle.group(2) == ',':
