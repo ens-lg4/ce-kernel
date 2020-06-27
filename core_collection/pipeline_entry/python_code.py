@@ -34,15 +34,19 @@ def execute(pipeline=None, result_cache=None, __kernel__=None):
     elif isinstance(pipeline, entry_type):
         return pipeline, pipeline
 
+    elif (type(pipeline) == str) and pipeline[0]==':':  # FIXME: experimental mode, needs testing (but not via CLI parser)
+        cached_subcomponent = traverse(result_cache, pipeline[1:].split('.'))
+        return execute(cached_subcomponent, result_cache, __kernel__)               # recursion #1
+
     elif type(pipeline) == list:
         result, obj = None, wc
         for sub_pipeline in pipeline:
-            result, obj = execute(sub_pipeline, result_cache, __kernel__)           # recursion #1
+            result, obj = execute(sub_pipeline, result_cache, __kernel__)           # recursion #2
         return result, obj  # only the last result gets returned
 
     elif type(pipeline) == dict:
         
-        result, obj = execute(pipeline.get('start_from'), result_cache, __kernel__) # recursion #2, FIXME: result gets cached but ignored otherwise - it may have to be merged in?
+        result, obj = execute(pipeline.get('start_from'), result_cache, __kernel__) # recursion #3, FIXME: result gets cached but ignored otherwise - it may have to be merged in?
         label       = pipeline.get('label')
         method      = pipeline['method']            # the only mandatory part
         param_layers= pipeline.get('params', [])
@@ -53,10 +57,10 @@ def execute(pipeline=None, result_cache=None, __kernel__=None):
         merged_params = {}
         for param_layer in param_layers:
             for k_str in param_layer.keys():
-                if k_str[-1] == ':':
+                if k_str[-1] == ':':                    # reference to a previously cached result or its subcomponent
                     m_keypath   = k_str[:-1].split('.')
                     m_value     = traverse(result_cache, param_layer[k_str].split('.'))
-                else:
+                else:                                   # just a verbatim value, possibly structural
                     m_keypath   = k_str.split('.')
                     m_value     = param_layer[k_str]
 
