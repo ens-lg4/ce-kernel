@@ -70,19 +70,7 @@ def execute(pipeline=None, result_cache=None, __kernel__=None):
                 else:
                     m_ptr[m_last_syll] = m_value
 
-        try:
-            result = obj.call(method, merged_params)
-        except NameError as method_not_found_e:
-            try:
-                entry_method_object = getattr(obj, method)
-                result = utils.free_access(entry_method_object, merged_params, class_method=True)
-            except AttributeError:
-                try:
-                    kernel_method_object = getattr(__kernel__, method)
-                    result = utils.free_access(kernel_method_object, merged_params, class_method=True)
-                except AttributeError:
-                    raise method_not_found_e
-
+        result = obj.call(method, merged_params)
 
         if label != None:
             result_cache[label] = result
@@ -93,7 +81,7 @@ def execute(pipeline=None, result_cache=None, __kernel__=None):
         return result, obj
 
     else:
-        raise(Exception("Unexpected type: pipeline = {}".format(pipeline)))
+        raise(Exception("Unexpected type: [sub]pipeline = {}".format(pipeline)))
 
 
 if __name__ == '__main__':

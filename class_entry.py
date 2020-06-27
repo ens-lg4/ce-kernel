@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.1.3'   # Try not to forget to update it!
+__version__ = '0.1.4'   # Try not to forget to update it!
 
 import os
 import utils
@@ -219,17 +219,30 @@ class Entry:
             The function can be declared as having positional args, named args with defaults and possibly also **kwargs.
         """
 
-        function_object     = self.reach_method(function_name)
+        try:
+            function_object     = self.reach_method(function_name)
 
-        entry_wide_params   = entry_wide_params or self.generate_merged_parameters()
-        merged_params       = utils.merged_dictionaries(entry_wide_params, call_specific_params) if call_specific_params else entry_wide_params
+            entry_wide_params   = entry_wide_params or self.generate_merged_parameters()
+            merged_params       = utils.merged_dictionaries(entry_wide_params, call_specific_params) if call_specific_params else entry_wide_params
 
-        merged_params.update( {             # These special parameters are non-overridable at the moment. Should they be?
-            '__kernel__'    : self.kernel,
-            '__entry__'     : self,
-        } )
+            merged_params.update( {             # These special parameters are non-overridable at the moment. Should they be?
+                '__kernel__'    : self.kernel,
+                '__entry__'     : self,
+            } )
 
-        return utils.free_access(function_object, merged_params)
+            result = utils.free_access(function_object, merged_params)
+        except NameError as method_not_found_e:
+            try:
+                entry_method_object = getattr(self, function_name)
+                result = utils.free_access(entry_method_object, call_specific_params, class_method=True)
+            except AttributeError:
+                try:
+                    kernel_method_object = getattr(self.kernel, function_name)
+                    result = utils.free_access(kernel_method_object, call_specific_params, class_method=True)
+                except AttributeError:
+                    raise method_not_found_e
+
+        return result
 
 
 if __name__ == '__main__':
