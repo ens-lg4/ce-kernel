@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = '0.1.6'   # Try not to forget to update it!
+__version__ = '0.1.7'   # Try not to forget to update it!
 
 import os
 import utils
@@ -92,6 +92,21 @@ class Entry:
 
     def get_name(self):
         return self.entry_path and os.path.basename(self.entry_path)
+
+
+    def print(self, params=None, template=None):
+        """
+            Usage example:
+                clip bypath foo_entry , print '--template=premier -> {} et troisieme -> {}' --params,=first,third
+        """
+        if params==None:
+            params = sorted(self.parameters_loaded())
+
+        if template==None:
+            print( ', '.join([ "{}: {}".format(p, repr(self[p])) for p in params]))
+        else:
+            values = [repr(self[p]) for p in params]
+            print(template.format(*values))
 
 
     def parameters_loaded(self):
