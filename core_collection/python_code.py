@@ -38,6 +38,9 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
 
         return x
 
+
+    ## Forming the query:
+    #
     if type(query)==dict:   # an already parsed query
         parsed_query        = query
         positive_tags_set   = parsed_query.get('positive_tags_set', set())
@@ -78,6 +81,8 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
             else:
                 positive_tags_set.add( condition )
 
+    objects_found = []
+
     # Applying the query:
     #
     for relative_path in name_2_path.values():
@@ -91,7 +96,7 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
                     candidate_still_ok = False
                     break
             if candidate_still_ok:
-                return candidate_object
+                objects_found.append( candidate_object )
 
     # Recursion into collections:
     #
@@ -103,11 +108,10 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
                 subcollection_local     = name_2_path.get(subcollection_name)
                 subcollection_object    = __kernel__.byname(subcollection_name, __entry__ if subcollection_local else None)
 
-            found_object                = subcollection_object.call('byquery', { 'query': parsed_query })
-            if found_object:
-                return found_object
+            objects_found_in_subcollection  = subcollection_object.call('byquery', { 'query': parsed_query })
+            objects_found.extend( objects_found_in_subcollection )
 
-    return None
+    return objects_found
 
 
 def byname(entry_name, name_2_path, collections_searchpath, __entry__=None, __kernel__=None):
