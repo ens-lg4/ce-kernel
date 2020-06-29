@@ -44,6 +44,7 @@ def execute(pipeline, __kernel__=None):
 
         for curr_link in curr_chain:
             start_from  = curr_link.get('start_from')
+            iterate     = curr_link.get('iterate', False)
             label       = curr_link.get('label')
             method      = curr_link['method']       # the mandatory part
             pos_params  = curr_link.get('pos_params', [])
@@ -82,12 +83,18 @@ def execute(pipeline, __kernel__=None):
                     else:
                         m_ptr[m_last_syll] = m_value
 
-            result = curr_entry_object.call(method, merged_params, pos_params)
+            ## FIXME: Extremely naive approach, will break if used more than once or not at the last stage
+            #
+            if iterate:
+                for entry_object in curr_entry_object:
+                    result = entry_object.call(method, merged_params, pos_params)
+            else:
+                result = curr_entry_object.call(method, merged_params, pos_params)
 
             if label != None:
                 result_cache[label] = result
 
-            if isinstance(result, entry_type):
+            if isinstance(result, entry_type) or (type(result)==list and isinstance(result[0], entry_type)):
                 curr_entry_object = result
 
     return result
