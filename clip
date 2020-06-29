@@ -11,27 +11,29 @@ from class_entry import default_kernel_instance
 
 if __name__ == '__main__':
 
-    pipeline_entry = default_kernel_instance.byname('pipeline_entry')
-    result, obj = pipeline_entry.call('execute', { 'pipeline': [
-        {
-            "start_from": {
-                "start_from": {
-                    "method": "byname",
-                    "params": { "entry_name" : "cli_parser2"},
-                },
-                "method": "get_arglist",
-                "label": "arglist_results",
-            },
+    pipeliner_entry = default_kernel_instance.byname('pipeliner3')
+    result = pipeliner_entry.call('execute', { 'pipeline': [
+        [ {
+            "method": "byname",
+            "params": { "entry_name" : "cli_parser3"},
+          },
+          {
+            "method": "get_arglist",
+            "label": "arglist_results",
+          },
+          {
             "method": "parse",
             "params": { ":": "arglist_results" },
             "label": "parser_results",
-        },
-        {
-            "start_from": pipeline_entry,
+          },
+        ], [
+          {
+            "start_from": pipeliner_entry,
             "method": "execute",
             "params": { ":": "parser_results" },
-        }
+          }
+        ]
     ] } )
 
-    print("clip final result: {}".format(result[0]))
+    print("clip final result: {}".format(result))
 
