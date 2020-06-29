@@ -1,7 +1,9 @@
 {
     "name_2_path" : {
-        "pipeline_entry"        : "pipeline_entry",
-        "cli_parser2"           : "cli_parser2"
+        "pipeliner3":       "pipeliner3",
+        "cli_parser3":      "cli_parser3",
+        "pipeline_entry":   "pipeline_entry",
+        "cli_parser2":      "cli_parser2"
     },
     "collections_searchpath" : [
     ]

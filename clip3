@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+
+""" CommanLine API of this framework.
+
+This script provides CommandLine API of the framework.
+
+Its source is also an example of Python API.
+"""
+
+from class_entry import default_kernel_instance
+
+if __name__ == '__main__':
+
+    pipeliner_entry = default_kernel_instance.byname('pipeliner3')
+    result = pipeliner_entry.call('execute', { 'pipeline': [
+        [ {
+            "method": "byname",
+            "params": { "entry_name" : "cli_parser3"},
+          },
+          {
+            "method": "get_arglist",
+            "label": "arglist_results",
+          },
+          {
+            "method": "parse",
+            "params": { ":": "arglist_results" },
+            "label": "parser_results",
+          },
+        ], [
+          {
+            "start_from": pipeliner_entry,
+            "method": "execute",
+            "params": { ":": "parser_results" },
+          }
+        ]
+    ] } )
+
+    print("clip final result: {}".format(result))
+
