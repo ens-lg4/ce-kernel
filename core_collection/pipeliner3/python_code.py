@@ -30,72 +30,70 @@ def execute(pipeline, __kernel__=None):
     wc                  = __kernel__.working_collection()
     entry_type          = type(wc)
     result_cache        = {}
+    curr_entry_object   = wc
 
     if pipeline==[]:
         pipeline = [{ 'method': 'help' }]
-    elif type(pipeline)!=list:  # ensuring the pipeline format is a LoLoD
+    elif type(pipeline)==dict:  # ensuring the pipeline format is a LoD
         pipeline = [pipeline]
 
-    if type(pipeline[0])!=list:
-        pipeline = [pipeline]
+    for curr_link in pipeline:
+        start_from  = curr_link.get('start_from')
+        iterate     = curr_link.get('iterate', False)
+        label       = curr_link.get('label')
+        method      = curr_link['method']       # the mandatory part
+        pos_params  = curr_link.get('pos_params', [])
+        param_layers= curr_link.get('params', [])
 
-    for curr_chain in pipeline:
-        curr_entry_object   = None
-
-        for curr_link in curr_chain:
-            start_from  = curr_link.get('start_from')
-            iterate     = curr_link.get('iterate', False)
-            label       = curr_link.get('label')
-            method      = curr_link['method']       # the mandatory part
-            pos_params  = curr_link.get('pos_params', [])
-            param_layers= curr_link.get('params', [])
-
-            ## Re-start if explicitly required:
-            #
-            if start_from:
-                if (type(start_from) == str) and start_from.startswith(':'):                # fetch the cached value
-                    curr_entry_object = traverse(result_cache, start_from[1:].split('.'))
-                else:                                                                       # or use the given value
-                    curr_entry_object = start_from
-                #
-                # we'll deal with possible type/class mismatches later ...
-            elif curr_entry_object==None:
+        ## Re-start if explicitly required:
+        #
+        if start_from:
+            if (type(start_from) == str) and start_from.startswith(':'):                # fetch the cached value
+                curr_entry_object = traverse(result_cache, start_from[1:].split('.'))
+            elif start_from == ',,':                                                    # restart from wc
                 curr_entry_object = wc
+            else:                                                                       # or use the given value
+                curr_entry_object = start_from
             #
-            # otherwise just stay with curr_entry_object ...
+            # we'll deal with possible class/cardinality mismatches later ...
+        #
+        # otherwise just stay with curr_entry_object ...
 
-            if type(param_layers)==dict:
-                param_layers = [ param_layers ]
+        ## Bringing to the common format with multiple layers:
+        #
+        if type(param_layers)==dict:
+            param_layers = [ param_layers ]
 
-            merged_params = {}
-            for param_layer in param_layers:
-                for k_str in param_layer.keys():
-                    if k_str[-1] == ':':                    # reference to a previously cached result or its subcomponent
-                        m_keypath   = k_str[:-1].split('.')
-                        m_value     = traverse(result_cache, param_layer[k_str].split('.'))
-                    else:                                   # just a verbatim value, possibly structural
-                        m_keypath   = k_str.split('.')
-                        m_value     = param_layer[k_str]
+        ## Going through editing layers and applying the edits:
+        #
+        merged_params = {}
+        for param_layer in param_layers:
+            for k_str in param_layer.keys():
+                if k_str[-1] == ':':                    # reference to a previously cached result or its subcomponent
+                    m_keypath   = k_str[:-1].split('.')
+                    m_value     = traverse(result_cache, param_layer[k_str].split('.'))
+                else:                                   # just a verbatim value, possibly structural
+                    m_keypath   = k_str.split('.')
+                    m_value     = param_layer[k_str]
 
-                    m_ptr, m_last_syll = traverse(merged_params, m_keypath, False)
-                    if m_last_syll == '':
-                        m_ptr.update(m_value)
-                    else:
-                        m_ptr[m_last_syll] = m_value
+                m_ptr, m_last_syll = traverse(merged_params, m_keypath, False)
+                if m_last_syll == '':
+                    m_ptr.update(m_value)
+                else:
+                    m_ptr[m_last_syll] = m_value
 
-            ## FIXME: Extremely naive approach, will break if used more than once or not at the last stage
-            #
-            if iterate:
-                for entry_object in curr_entry_object:
-                    result = entry_object.call(method, merged_params, pos_params)
-            else:
-                result = curr_entry_object.call(method, merged_params, pos_params)
+        ## FIXME: Extremely naive approach, will break if used more than once or not at the last stage
+        #
+        if iterate:
+            for entry_object in curr_entry_object:
+                result = entry_object.call(method, merged_params, pos_params)
+        else:
+            result = curr_entry_object.call(method, merged_params, pos_params)
 
-            if label != None:
-                result_cache[label] = result
+        if label != None:
+            result_cache[label] = result
 
-            if isinstance(result, entry_type) or (type(result)==list and isinstance(result[0], entry_type)):
-                curr_entry_object = result
+        curr_entry_object = result
 
     return result
 

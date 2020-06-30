@@ -48,86 +48,83 @@ def parse(arglist):
     caller_name = arglist[0]
     i += 1
 
-    all_chains = []
+    pipeline = []
 
     while i<len(arglist):
 
-        if arglist[i]==',,':    # skip chain separator (not expected on the first pass)
-            i += 1
+        curr_link = {}
+        pipeline.append( curr_link )
 
-        curr_chain = []
-        all_chains.append( curr_chain )
-
-        while i<len(arglist) and arglist[i]!=',,':
-            
-            curr_link = {}
-            curr_chain.append( curr_link )
-
-            ## Leaf through various forms of link separators:
-            #
-            if arglist[i].startswith(','):
+        ## Leaf through various forms of link separators:
+        #
+        if arglist[i].startswith(','):
+            if arglist[i]==',,':
+                curr_link['start_from'] = ',,'
+            else:
                 matched_separator = re.match('^,(:[\w\.]+)?(\{?)$', arglist[i])
                 if matched_separator:
-                    curr_link['start_from'] = matched_separator.group(1)
-                    curr_link['iterate']    = matched_separator.group(2) == '{'
-                i += 1
-
-            ## There may be a preceding label, check for it:
-            #
-            matched_label = re.match('^(\w+):$', arglist[i])
-            if matched_label:
-                curr_link['label'] = matched_label.group(1)
-                i += 1
-
-            ## The mandatory method name:
-            #
-            curr_link['method'] = arglist[i]
+                    if matched_separator.group(1):
+                        curr_link['start_from'] = matched_separator.group(1)
+                    if matched_separator.group(2):
+                        curr_link['iterate']    = matched_separator.group(2) == '{'
             i += 1
 
-            call_params = {}
-            call_pos_params = []
-            curr_link['pos_params'] = call_pos_params
-            curr_link['params'] = call_params
+        ## There may be a label, check for it:
+        #
+        matched_label = re.match('^(\w+):$', arglist[i])
+        if matched_label:
+            curr_link['label'] = matched_label.group(1)
+            i += 1
 
-            ## Going through the parameters
-            while i<len(arglist) and not arglist[i].startswith(','):
-                if not arglist[i].startswith('--'):
-                    call_pos_params.append( to_num_or_not_to_num(arglist[i]) )
+        ## The mandatory method name:
+        #
+        curr_link['method'] = arglist[i]
+        i += 1
+
+        call_params = {}
+        call_pos_params = []
+        curr_link['pos_params'] = call_pos_params
+        curr_link['params'] = call_params
+
+        ## Going through the parameters
+        while i<len(arglist) and not arglist[i].startswith(','):
+            if not arglist[i].startswith('--'):
+                call_pos_params.append( to_num_or_not_to_num(arglist[i]) )
+            else:
+                call_param_key = None
+                matched_paramref = re.match('^--([\w\.]*:)([\w\.]+)$', arglist[i])
+                if matched_paramref:
+                    call_param_key      = matched_paramref.group(1)
+                    call_param_value    = matched_paramref.group(2)
                 else:
-                    call_param_key = None
-                    matched_paramref = re.match('^--([\w\.]*:)([\w\.]+)$', arglist[i])
-                    if matched_paramref:
-                        call_param_key      = matched_paramref.group(1)
-                        call_param_value    = matched_paramref.group(2)
-                    else:
-                        matched_parampair = re.match('^--([\w\.]+)([\ ,;:]?)=(.*)$', arglist[i])
-                        if matched_parampair:
-                            call_param_key      = matched_parampair.group(1)
-                            delimiter           = matched_parampair.group(2)
-                            call_param_value    = matched_parampair.group(3)
-                            if delimiter:
-                                call_param_value    = [to_num_or_not_to_num(el) for el in call_param_value.split(delimiter)]
-                            else:
-                                call_param_value    = to_num_or_not_to_num(call_param_value)
+                    matched_parampair = re.match('^--([\w\.]+)([\ ,;:]?)=(.*)$', arglist[i])
+                    if matched_parampair:
+                        call_param_key      = matched_parampair.group(1)
+                        delimiter           = matched_parampair.group(2)
+                        call_param_value    = matched_parampair.group(3)
+                        if delimiter:
+                            call_param_value    = [to_num_or_not_to_num(el) for el in call_param_value.split(delimiter)]
                         else:
-                            matched_paramsingle = re.match('^--([\w\.]+)([,-]?)$', arglist[i])
-                            if matched_paramsingle:
-                                call_param_key      = matched_paramsingle.group(1)
-                                if matched_paramsingle.group(2) == ',':
-                                    call_param_value    = []                                    # the way to express an empty list
-                                else:
-                                    call_param_value    = matched_paramsingle.group(2) != '-'     # either boolean True or False
-
-                    if call_param_key:
-                        call_params[call_param_key] = call_param_value
+                            call_param_value    = to_num_or_not_to_num(call_param_value)
                     else:
-                        raise(Exception("Parsing error - cannot understand '{}'".format(arglist[i])))
-                i += 1
+                        matched_paramsingle = re.match('^--([\w\.]+)([,-]?)$', arglist[i])
+                        if matched_paramsingle:
+                            call_param_key      = matched_paramsingle.group(1)
+                            if matched_paramsingle.group(2) == ',':
+                                call_param_value    = []                                    # the way to express an empty list
+                            else:
+                                call_param_value    = matched_paramsingle.group(2) != '-'     # either boolean True or False
+
+                if call_param_key:
+                    call_params[call_param_key] = call_param_value
+                else:
+                    raise(Exception("Parsing error - cannot understand '{}'".format(arglist[i])))
+            i += 1
 
 
     return {
         'caller_name':  caller_name,
-        'pipeline':     all_chains,
+        'pipeline':     pipeline,
     }
 
 
