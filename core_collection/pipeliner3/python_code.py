@@ -31,6 +31,7 @@ def execute(pipeline, __kernel__=None):
     entry_type          = type(wc)
     result_cache        = {}
     curr_entry_object   = wc
+    iteration_mode      = False
 
     if pipeline==[]:
         pipeline = [{ 'method': 'help' }]
@@ -39,7 +40,7 @@ def execute(pipeline, __kernel__=None):
 
     for curr_link in pipeline:
         begin_with  = curr_link.get('begin_with')
-        iterate     = curr_link.get('iterate', False)
+        iteration_mode = iteration_mode or curr_link.get('iterate', False)
         label       = curr_link.get('label')
         method      = curr_link['method']       # the mandatory part
         pos_params  = curr_link.get('pos_params', [])
@@ -51,7 +52,8 @@ def execute(pipeline, __kernel__=None):
             if (type(begin_with) == str) and begin_with.startswith(':'):                # fetch the cached value
                 curr_entry_object = traverse(result_cache, begin_with[1:].split('.'))
             elif begin_with == ',,':                                                    # restart from wc
-                curr_entry_object = wc
+                curr_entry_object   = wc
+                iteration_mode      = False
             else:                                                                       # or use the given value
                 curr_entry_object = begin_with
             #
@@ -82,11 +84,13 @@ def execute(pipeline, __kernel__=None):
                 else:
                     m_ptr[m_last_syll] = m_value
 
-        ## FIXME: Extremely naive approach, will break if used more than once or not at the last stage
+        ## FIXME: A naive approach, assumes ,{ is only used once and stays until reset
         #
-        if iterate:
+        if iteration_mode:
+            result_list = []
             for entry_object in curr_entry_object:
-                result = entry_object.call(method, merged_params, pos_params)
+                result_list.append( entry_object.call(method, merged_params, pos_params) )
+            result = result_list
         else:
             result = curr_entry_object.call(method, merged_params, pos_params)
 
