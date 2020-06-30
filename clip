@@ -13,26 +13,26 @@ if __name__ == '__main__':
 
     pipeliner_entry = default_kernel_instance.byname('pipeliner3')
     result = pipeliner_entry.call('execute', { 'pipeline': [
-        [ {
+        {
+            "label": "parser_entry",
             "method": "byname",
             "params": { "entry_name" : "cli_parser3"},
-          },
-          {
-            "method": "get_arglist",
+        },
+        {
             "label": "arglist_results",
-          },
-          {
+            "method": "get_arglist",
+        },
+        {
+            "start_from": ":parser_entry",
+            "label": "parser_results",
             "method": "parse",
             "params": { ":": "arglist_results" },
-            "label": "parser_results",
-          },
-        ], [
-          {
+        },
+        {
             "start_from": pipeliner_entry,
             "method": "execute",
             "params": { ":": "parser_results" },
-          }
-        ]
+        }
     ] } )
 
     print("clip final result: {}".format(result))
