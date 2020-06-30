@@ -38,7 +38,7 @@ def execute(pipeline, __kernel__=None):
         pipeline = [pipeline]
 
     for curr_link in pipeline:
-        start_from  = curr_link.get('start_from')
+        begin_with  = curr_link.get('begin_with')
         iterate     = curr_link.get('iterate', False)
         label       = curr_link.get('label')
         method      = curr_link['method']       # the mandatory part
@@ -47,13 +47,13 @@ def execute(pipeline, __kernel__=None):
 
         ## Re-start if explicitly required:
         #
-        if start_from:
-            if (type(start_from) == str) and start_from.startswith(':'):                # fetch the cached value
-                curr_entry_object = traverse(result_cache, start_from[1:].split('.'))
-            elif start_from == ',,':                                                    # restart from wc
+        if begin_with:
+            if (type(begin_with) == str) and begin_with.startswith(':'):                # fetch the cached value
+                curr_entry_object = traverse(result_cache, begin_with[1:].split('.'))
+            elif begin_with == ',,':                                                    # restart from wc
                 curr_entry_object = wc
             else:                                                                       # or use the given value
-                curr_entry_object = start_from
+                curr_entry_object = begin_with
             #
             # we'll deal with possible class/cardinality mismatches later ...
         #

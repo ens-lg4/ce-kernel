@@ -23,13 +23,13 @@ if __name__ == '__main__':
             "method": "get_arglist",
         },
         {
-            "start_from": ":parser_entry",
+            "begin_with": ":parser_entry",
             "label": "parser_results",
             "method": "parse",
             "params": { ":": "arglist_results" },
         },
         {
-            "start_from": pipeliner_entry,
+            "begin_with": pipeliner_entry,
             "method": "execute",
             "params": { ":": "parser_results" },
         }

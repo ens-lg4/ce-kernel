@@ -59,12 +59,12 @@ def parse(arglist):
         #
         if arglist[i].startswith(','):
             if arglist[i]==',,':
-                curr_link['start_from'] = ',,'
+                curr_link['begin_with'] = ',,'
             else:
                 matched_separator = re.match('^,(:[\w\.]+)?(\{?)$', arglist[i])
                 if matched_separator:
                     if matched_separator.group(1):
-                        curr_link['start_from'] = matched_separator.group(1)
+                        curr_link['begin_with'] = matched_separator.group(1)
                     if matched_separator.group(2):
                         curr_link['iterate']    = matched_separator.group(2) == '{'
             i += 1
