@@ -63,9 +63,13 @@ def parse(arglist):
             curr_link = {}
             curr_chain.append( curr_link )
 
-            if arglist[i].startswith(','):    # skip link separator (not expected on the first pass)
-                if arglist[i]==',{':
-                    curr_link['iterate'] = True
+            ## Leaf through various forms of link separators:
+            #
+            if arglist[i].startswith(','):
+                matched_separator = re.match('^,(:[\w\.]+)?(\{?)$', arglist[i])
+                if matched_separator:
+                    curr_link['start_from'] = matched_separator.group(1)
+                    curr_link['iterate']    = matched_separator.group(2) == '{'
                 i += 1
 
             ## There may be a preceding label, check for it:
