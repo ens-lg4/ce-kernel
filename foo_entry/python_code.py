@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
-# Example foo_entry's code
+""" Example entry that is not a part of any collection
+"""
 
 
 def foo(alpha, beta, gamma, delta=4444, epsilon=55555, zeta=666666):
+    """ foo() method with its positional and optional parameters
+    """
     print('alpha = "{}", beta = "{}", gamma = "{}", delta = "{}", epsilon = "{}", zeta = "{}"'.format(alpha,beta,gamma,delta,epsilon,zeta))
     return 99, 88
 

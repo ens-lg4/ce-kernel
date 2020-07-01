@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
-# Example bar_entry's code
+""" Another example entry that is not a part of any collection
+"""
 
 
 def bar(alpha, beta, gamma, **rest):
+    """ bar() method with its positional and **rest parameters
+    """
     print('alpha = "{}", beta = "{}", gamma = "{}"'.format(alpha,beta,gamma))
     print('---- Rest: ----')
     for k in rest:
