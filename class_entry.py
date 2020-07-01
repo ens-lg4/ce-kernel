@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+""" The kernel of the CE system.
+    Provides two classes, MicroKernel and Entry.
+"""
+
 __version__ = '0.1.7'   # Try not to forget to update it!
 
 import os
@@ -138,8 +142,8 @@ class Entry:
             if parent_entry_name:
                 if parent_entry_name.find('/')>=0:  # FIXME: parent_entry_name is a bad name
                     self.parent_entry = self.kernel.bypath( parent_entry_name )
-                else:
-                    self.parent_entry = self.kernel.byname( parent_entry_name )   # in case we get a False, it should stick and not cause another byname() in future
+                else:   # in case we get a False, it should stick   and not cause another byname() in future
+                    self.parent_entry = self.kernel.byname( parent_entry_name )
             else:
                 self.parent_entry = False
 

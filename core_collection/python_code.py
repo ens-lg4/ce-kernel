@@ -126,6 +126,8 @@ def byname(entry_name, name_2_path, collections_searchpath, __entry__=None, __ke
             return __kernel__.bypath( full_path )
         else:
             return relative_path
+    # Recursion into collections:
+    #
     elif collections_searchpath:
         for subcollection_name in collections_searchpath:
             if subcollection_name.find('/')>=0:
