@@ -38,7 +38,8 @@ def execute(pipeline, __kernel__=None):
     elif type(pipeline)==dict:  # ensuring the pipeline format is a LoD
         pipeline = [pipeline]
 
-    for curr_link in pipeline:
+    for curr_link_idx in range(len(pipeline)):
+        curr_link   = pipeline[curr_link_idx]
         begin_with  = curr_link.get('begin_with')
         iteration_mode = iteration_mode or curr_link.get('iterate', False)
         label       = curr_link.get('label')
@@ -58,11 +59,10 @@ def execute(pipeline, __kernel__=None):
                 curr_entry_object = begin_with
             #
             # we'll deal with possible class/cardinality mismatches later ...
+        elif curr_link_idx==0 and method=='help' and pos_params==[] and (param_layers==[] or param_layers=={}):
+            curr_entry_object   = wc.call('byname', {'entry_name': 'cli_parser3'})
         #
         # otherwise just stay with curr_entry_object ...
-        else:
-            if method=='help' and pos_params==[] and (param_layers==[] or param_layers=={}):
-                curr_entry_object   = wc.call('byname', {'entry_name': 'cli_parser3'})
 
         ## Bringing to the common format with multiple layers:
         #
