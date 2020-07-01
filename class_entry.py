@@ -198,24 +198,39 @@ class Entry:
                 clip byname --entry_name=download_entry , help
                 clip byname --entry_name=download_entry , help --method_name=download
         """
-        print( "Entry: {}".format( self.get_name() ) )
-        print( "EntryPath: {}".format( self.get_path() ) )
+        print( "Entry:         {}".format( self.get_name() ) )
+        print( "EntryPath:     {}".format( self.get_path() ) )
 
         if method_name:
-            print( "Method: {}".format( method_name ) )
+            print( "Method:        {}".format( method_name ) )
             try:
                 ancestry_path   = []
                 function_object = self.reach_method(method_name, _ancestry_path=ancestry_path) # the method may not be reachable
-                print( "MethodPath: {}".format( function_object.__module__ ))
+
+                import inspect
+                import sys
+                if sys.version_info[0] < 3:
+                    supported_arg_names, varargs, varkw, defaults = inspect.getargspec(function_object)
+                else:
+                    supported_arg_names, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(function_object)
+                num_required    = len(supported_arg_names) - len(defaults or tuple())
+                signature       = ', '.join([supported_arg_names[i]+('='+str(defaults[i-num_required]  ) if i>=num_required else '') for i in range(len(supported_arg_names))])
+                if varargs:
+                    signature += ', *'+varargs
+                if varkw:
+                    signature += ', **'+varkw
+
+                print( "MethodPath:    {}".format( function_object.__module__ ))
                 print( "Ancestry path: {}".format( ' --> '.join(ancestry_path) ))
-                print( "DocString: {}".format( function_object.__doc__ ))
+                print( "Signature:     {}({})".format( method_name, signature ))
+                print( "DocString:    {}".format( function_object.__doc__ ))
             except Exception as e:
                 print( str(e) )
         else:
             try:
                 module_object   = self.get_module_object()  # the entry may not contain any code...
                 doc_string      = module_object.__doc__     # the module may not contain any DocString...
-                print("DocString: {}".format(doc_string))
+                print( "DocString:    {}".format(doc_string))
             except ImportError:
                 parent_may_know = ", but you may want to check its parent: "+self.parent_entry.get_name() if self.parent_loaded() else ""
                 print("This entry has no code of its own" + parent_may_know)
