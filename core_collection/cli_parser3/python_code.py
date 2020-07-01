@@ -1,5 +1,28 @@
 #!/usr/bin/env python3
 
+""" CLIP stands for Command LIne Pipeline.
+
+    An Entry is defined as a directory that may contain:
+        - DATA (in the form of parameters.json)
+        - CODE (in the form of python_code.py)
+        - FILES (just arbitrary files within that directory)
+
+    CLIP allows you to access all of these in a convenient way from the command line.
+
+    The simplest pipeline is accessing a directory that contains python_code.py
+    and then running a parameterized function from it:
+        clip bypath /path/to/your/entry , \\
+             fun_name pos_param1 pos_param2 --opt_scalar4=val4 --opt_list6,=list_el1,list_el2 --opt_dict8.foo=bar
+
+    Yes, it's that simple: CLIP automatically understands positional & optional parameters,
+    and can do quite a bit of structural data parsing on the fly, so you don't have to.
+    In the example above we pass in two positional parameters, an optional scalar,
+    an optional space-separated list, and a key-value pair of an optional dictionary.
+
+    Note the comma - it is CLIP's "internal pipe" symbol that links steps of a pipeline together,
+    passing the object that is a result of the previous step, to the next step of the pipeline.
+"""
+
 
 def get_arglist():
     "Returns command line arguments as a list, wrapped in a dictionary"
@@ -12,16 +35,31 @@ def get_arglist():
 def parse(arglist):
     """Parse the command line given as a list of string arguments.
 
-<FIXME>
     The expected format is:
-        <executable_path> [--<kernel_param_key>[=<kernel_param_value>]]* [ <method_name> [--<param_key>[=<param_value>]]* ]+
+        clip [[[<label>:] <method_name> [<pos_param>]* [<opt_param>]* ] [<separator> [label:] <method_name> [<pos_param>]* [<opt_param>]*]* ]
 
-    Both kernel_params and call_params may:
-        (1) have a value (numeric or string)
-        (2) have no value, but terminate with an equal sign (assuming the value to be '')
-        (3) have no value and no trailing equal sign (assuming the value to be 'yes')
-        (4) override a previously mentioned value from left to right
-</FIXME>
+        You can use as many positional params as possible while their values are scalars.
+        However as soon as you need to define a structure, a switch to optional param syntax will be necessary.
+
+        Optional params can represent a lot of things:
+            --alpha                         # boolean True
+            --beta-                         # boolean False
+            --gamma=                        # scalar empty string
+            --delta=1234                    # scalar number
+            --epsilon=hello                 # scalar string
+            --zeta,=tag1,tag2,tag3          # list (can be split on a comma, a colon: or a space )
+            --eta.theta                     # dictionary boolean True value
+            --iota.kappa-                   # dictionary boolean False value
+            --lambda.mu=                    # dictionary empty string value
+            --nu.xi=omicron                 # dictionary scalar value (number or string)
+            --pi.rho,=tag1,tag2,tag3        # dictionary that contains a list
+            --sigma:tau.upsilon             # value taken from execution cache, produced by a pipeline step labelled "tau:"
+            --phi.chi:psi.omega             # value taken from execution cache, produced by "psi:", assigned to a dictionary key
+
+        Separator can be:
+            ,               # pass the object that is the expected result of the previous step to the next step
+            ,:cache_label   # do not pass the previous result, rather start from a cached object
+            ,,              # do not pass the previous result, rather start from working_collection
     """
 
     def to_num_or_not_to_num(x):
