@@ -4,7 +4,7 @@
     Provides two classes, MicroKernel and Entry.
 """
 
-__version__ = '0.1.7'   # Try not to forget to update it!
+__version__ = '0.1.8'   # Try not to forget to update it!
 
 import os
 import utils
@@ -207,14 +207,9 @@ class Entry:
                 ancestry_path   = []
                 function_object = self.reach_method(method_name, _ancestry_path=ancestry_path) # the method may not be reachable
 
-                import inspect
-                import sys
-                if sys.version_info[0] < 3:
-                    supported_arg_names, varargs, varkw, defaults = inspect.getargspec(function_object)
-                else:
-                    supported_arg_names, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(function_object)
-                num_required    = len(supported_arg_names) - len(defaults or tuple())
-                signature       = ', '.join([supported_arg_names[i]+('='+str(defaults[i-num_required]  ) if i>=num_required else '') for i in range(len(supported_arg_names))])
+                required_arg_names, optional_arg_names, method_defaults, varargs, varkw = utils.expected_call_structure(function_object)
+
+                signature = ', '.join(required_arg_names + [optional_arg_names[i]+'='+str(method_defaults[i]) for i in range(len(optional_arg_names))] )
                 if varargs:
                     signature += ', *'+varargs
                 if varkw:
@@ -250,7 +245,7 @@ class Entry:
     def call(self, function_name, call_specific_params=None, pos_params=None, entry_wide_params=None):
         """ Call a given function of a given entry and feed it with arguments from a given dictionary.
 
-            The function can be declared as having positional args, named args with defaults and possibly also **kwargs.
+            The function can be declared as having positional args, named args with defaults and optionally **kwargs.
         """
 
         try:

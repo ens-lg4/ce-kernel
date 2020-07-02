@@ -32,10 +32,8 @@ def get_entrys_python_module(module_path, code_container_name='python_code'):
     return module_object
 
 
-def free_access(function_object, given_arg_list, given_arg_dict, class_method=False):
-    """ Call a given function_object and feed it with arguments from given list and dictionary.
-
-        The function can be declared as having named args, defaults and optionally **kwargs.
+def expected_call_structure(function_object, class_method=False):
+    """ Get the expected parameters of a function and their default values.
     """
 
     if sys.version_info[0] < 3:
@@ -43,12 +41,25 @@ def free_access(function_object, given_arg_list, given_arg_dict, class_method=Fa
     else:
         supported_arg_names, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(function_object)
 
+    defaults = defaults or tuple()
+
     if class_method:
         supported_arg_names.pop(0)
 
-    num_required        = len(supported_arg_names) - len(defaults or tuple())
+    num_required        = len(supported_arg_names) - len(defaults)
     required_arg_names  = supported_arg_names[:num_required]
     optional_arg_names  = supported_arg_names[num_required:]
+
+    return required_arg_names, optional_arg_names, defaults, varargs, varkw
+
+
+def free_access(function_object, given_arg_list, given_arg_dict, class_method=False):
+    """ Call a given function_object and feed it with arguments from given list and dictionary.
+
+        The function can be declared as having named args, defaults and optionally **kwargs.
+    """
+
+    required_arg_names, optional_arg_names, defaults, varargs, varkw = expected_call_structure(function_object, class_method)
 
     non_listed_required_arg_names = required_arg_names[len(given_arg_list):]
     missing_args_set    = set(non_listed_required_arg_names) - set(given_arg_dict)
