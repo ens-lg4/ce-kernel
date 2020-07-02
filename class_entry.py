@@ -89,7 +89,10 @@ class Entry:
                 clip byname --entry_name=words_collection , get_path
         """
         if file_name:
-            return os.path.join(self.entry_path, file_name)
+            if file_name.startswith('/'):
+                return file_name
+            else:
+                return os.path.join(self.entry_path, file_name)
         else:
             return self.entry_path
 

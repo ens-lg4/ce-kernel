@@ -1,6 +1,7 @@
 {
     "parent_entry_name": "/Users/lg4/work/sandbox/python/introspect/ce/core_collection",
     "name_2_path": {
+        "core_collection": "/Users/lg4/work/sandbox/python/introspect/ce/core_collection",
         "download_entry": "download_entry",
         "kaware": "kaware",
         "params_entry": "params_entry",
