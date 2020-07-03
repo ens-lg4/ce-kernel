@@ -13,13 +13,24 @@ def show_map(name_2_path):
 
 
 def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel__=None):
-    """ Find ONE (the first encountered) object given a query
+    """ Find all objects matching the query
 
         Usage examples:
-            clip byquery --query=dictionary,-english get_path
-            clip byquery --query=n:4 get_path
-            clip byquery '--query=dictionary,pchela<>BEE' get_path
+            clip byquery dictionary,-english ,{ get_path
+            clip byquery n=4 ,{ get_path
+            clip byquery 'dictionary,pchela!=BEE' ,{ get_path
     """
+
+    def traverse_own(entry, key_path):
+        dict_ptr = entry.parameters_loaded()
+        for key_syllable in key_path:
+            if type(dict_ptr)==dict and (key_syllable in dict_ptr):
+                dict_ptr = dict_ptr[key_syllable]   # iterative descent
+            else:
+                return None
+
+        return dict_ptr
+
 
     def to_num_or_not_to_num(x):
         "Convert the parameter to a number if it looks like it"
@@ -60,21 +71,22 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
 
         import re
         for condition in conditions:
-            matchObj = re.match('([\w\.]+)(:|<>|<|>|<:|>:)(-?[\w\.]+)', condition)
+            matchObj = re.match('([\w\.]+)(=|==|!=|<>|<|>|<=|>=)(-?[\w\.]+)', condition)
             if matchObj:
-                k,v = matchObj.group(1), to_num_or_not_to_num(matchObj.group(3))
-                if matchObj.group(2)==':':
-                    check_list.append( lambda x : x[k]==v )
-                elif matchObj.group(2)=='<>':
-                    check_list.append( lambda x : x[k]!=v )
+                key_path    = matchObj.group(1).split('.')
+                test_val    = to_num_or_not_to_num(matchObj.group(3))
+                if matchObj.group(2) in ('=', '=='):
+                    check_list.append( lambda x : traverse_own(x, key_path)==test_val )
+                elif matchObj.group(2) in ('!=', '<>'):
+                    check_list.append( lambda x : traverse_own(x, key_path)!=test_val )
                 elif matchObj.group(2)=='<':
-                    check_list.append( lambda x : x[k]<v )
+                    check_list.append( lambda x : [val!=None and val<test_val for val in [traverse_own(x, key_path)]][0] )
                 elif matchObj.group(2)=='>':
-                    check_list.append( lambda x : x[k]>v )
-                elif matchObj.group(2)=='<:':
-                    check_list.append( lambda x : x[k]<=v )
-                elif matchObj.group(2)=='>:':
-                    check_list.append( lambda x : x[k]>=v )
+                    check_list.append( lambda x : [val!=None and val>test_val for val in [traverse_own(x, key_path)]][0] )
+                elif matchObj.group(2)=='<=':
+                    check_list.append( lambda x : [val!=None and val<=test_val for val in [traverse_own(x, key_path)]][0] )
+                elif matchObj.group(2)=='>=':
+                    check_list.append( lambda x : [val!=None and val>=test_val for val in [traverse_own(x, key_path)]][0] )
 
             elif condition[0] in '!^-':
                 negative_tags_set.add( condition[1:] )
