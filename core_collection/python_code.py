@@ -28,14 +28,25 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
     """
 
     def traverse_own(entry, key_path):
-        dict_ptr = entry.parameters_loaded()
+        struct_ptr = entry.parameters_loaded()
         for key_syllable in key_path:
-            if type(dict_ptr)==dict and (key_syllable in dict_ptr):
-                dict_ptr = dict_ptr[key_syllable]   # iterative descent
+            if type(struct_ptr)==dict and (key_syllable in struct_ptr):
+                struct_ptr = struct_ptr[key_syllable]   # iterative descent
+            elif type(struct_ptr)==list:
+                idx = None
+                try:
+                    idx = int(key_syllable)
+                except:
+                    pass
+
+                if type(idx)==int and 0<=idx<len(struct_ptr):
+                    struct_ptr = struct_ptr[idx]
+                else:
+                    return None
             else:
                 return None
 
-        return dict_ptr
+        return struct_ptr
 
 
     def to_num_or_not_to_num(x):
