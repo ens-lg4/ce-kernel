@@ -27,26 +27,33 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
             clip byquery key1.ind2.key3?      ,{ get_path       # the path key1.ind2.key3 converts to True (Python rules)
     """
 
-    def traverse_own(entry, key_path):
-        struct_ptr = entry.parameters_loaded()
-        for key_syllable in key_path:
-            if type(struct_ptr)==dict and (key_syllable in struct_ptr):
-                struct_ptr = struct_ptr[key_syllable]   # iterative descent
-            elif type(struct_ptr)==list:
-                idx = None
-                try:
-                    idx = int(key_syllable)
-                except:
-                    pass
+    def traverse_and_apply(key_path, fun, against=None):
+        """ Finally, a useful real-life example of closures:
+            captures both *fun* and *against* in the internal function.
+        """
 
-                if type(idx)==int and 0<=idx<len(struct_ptr):
-                    struct_ptr = struct_ptr[idx]
+        def traverse(entry):
+            struct_ptr = entry.parameters_loaded()
+            for key_syllable in key_path:
+                if type(struct_ptr)==dict and (key_syllable in struct_ptr):
+                    struct_ptr = struct_ptr[key_syllable]   # iterative descent
+                elif type(struct_ptr)==list:
+                    idx = None
+                    try:
+                        idx = int(key_syllable)
+                    except:
+                        pass
+
+                    if type(idx)==int and 0<=idx<len(struct_ptr):
+                        struct_ptr = struct_ptr[idx]
+                    else:
+                        return None
                 else:
                     return None
-            else:
-                return None
 
-        return struct_ptr
+            return fun(struct_ptr, against)
+
+        return traverse
 
 
     def to_num_or_not_to_num(x):
@@ -93,25 +100,25 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
                 key_path    = binary_op_match.group(1).split('.')
                 test_val    = to_num_or_not_to_num(binary_op_match.group(3))
                 if binary_op_match.group(2) in ('=', '=='):
-                    check_list.append( lambda x : traverse_own(x, key_path)==test_val )
+                    check_list.append( traverse_and_apply(key_path, lambda x, y : x==y, test_val) )
                 elif binary_op_match.group(2) in ('!=', '<>'):
-                    check_list.append( lambda x : traverse_own(x, key_path)!=test_val )
+                    check_list.append( traverse_and_apply(key_path, lambda x, y : x!=y, test_val) )
                 elif binary_op_match.group(2)=='<':
-                    check_list.append( lambda x : [val!=None and val<test_val for val in [traverse_own(x, key_path)]][0] )
+                    check_list.append( traverse_and_apply(key_path, lambda x, y : x!=None and x<y, test_val) )
                 elif binary_op_match.group(2)=='>':
-                    check_list.append( lambda x : [val!=None and val>test_val for val in [traverse_own(x, key_path)]][0] )
+                    check_list.append( traverse_and_apply(key_path, lambda x, y : x!=None and x>y, test_val) )
                 elif binary_op_match.group(2)=='<=':
-                    check_list.append( lambda x : [val!=None and val<=test_val for val in [traverse_own(x, key_path)]][0] )
+                    check_list.append( traverse_and_apply(key_path, lambda x, y : x!=None and x<=y, test_val) )
                 elif binary_op_match.group(2)=='>=':
-                    check_list.append( lambda x : [val!=None and val>=test_val for val in [traverse_own(x, key_path)]][0] )
+                    check_list.append( traverse_and_apply(key_path, lambda x, y : x!=None and x>=y, test_val) )
             else:
                 unary_op_match = re.match('([\w\.]*\w)(\.|\?)$', condition)
                 if unary_op_match:
                     key_path    = unary_op_match.group(1).split('.')
                     if unary_op_match.group(2)=='.':
-                        check_list.append( lambda x : traverse_own(x, key_path)!=None )
+                        check_list.append( traverse_and_apply(key_path, lambda x, y: x!=None) )
                     elif unary_op_match.group(2)=='?':
-                        check_list.append( lambda x : bool(traverse_own(x, key_path)) )
+                        check_list.append( traverse_and_apply(key_path, lambda x, y: bool(x)) )
                 else:
                     tag_match = re.match('([!^-])?(\w+)$', condition)
                     if tag_match:
