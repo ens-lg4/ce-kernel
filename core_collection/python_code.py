@@ -20,11 +20,11 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
             clip byquery key1.key2.key3==1234 ,{ get_name       # the value of key1.key2.key3 equals 1234
             clip byquery key1.key2.key3!=1234 ,{ get_path       #                     does not equal 1234
             clip byquery key1.key2.key3<1234  ,{ get_name       #                       is less than 1234
-            clip byquery key1.key2.key3>1234  ,{ get_path       #                    is greater than 1234
-            clip byquery key1.key2.key3<=1234 ,{ get_name       #           is less than or equal to 1234
-            clip byquery key1.key2.key3>=1234 ,{ get_path       #        is greater than or equal to 1234
+            clip byquery key1.ind2.key3>1234  ,{ get_path       #                    is greater than 1234
+            clip byquery key1.ind2.key3<=1234 ,{ get_name       #           is less than or equal to 1234
+            clip byquery key1.ind2.key3>=1234 ,{ get_path       #        is greater than or equal to 1234
             clip byquery key1.key2.key3.      ,{ get_name       # the path key1.key2.key3 exists
-            clip byquery key1.key2.key3?      ,{ get_path       # the path key1.key2.key3 converts to True (Python rules)
+            clip byquery key1.ind2.key3?      ,{ get_path       # the path key1.ind2.key3 converts to True (Python rules)
     """
 
     def traverse_own(entry, key_path):
@@ -88,7 +88,7 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
 
         import re
         for condition in conditions:
-            binary_op_match = re.match('([\w\.]*\w)(=|==|!=|<>|<|>|<=|>=)(-?[\w\.]+)', condition)
+            binary_op_match = re.match('([\w\.]*\w)(=|==|!=|<>|<|>|<=|>=)(-?[\w\.]+)$', condition)
             if binary_op_match:
                 key_path    = binary_op_match.group(1).split('.')
                 test_val    = to_num_or_not_to_num(binary_op_match.group(3))
@@ -105,18 +105,22 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
                 elif binary_op_match.group(2)=='>=':
                     check_list.append( lambda x : [val!=None and val>=test_val for val in [traverse_own(x, key_path)]][0] )
             else:
-                unary_op_match = re.match('([\w\.]*\w)(\.|\?)', condition)
+                unary_op_match = re.match('([\w\.]*\w)(\.|\?)$', condition)
                 if unary_op_match:
                     key_path    = unary_op_match.group(1).split('.')
                     if unary_op_match.group(2)=='.':
                         check_list.append( lambda x : traverse_own(x, key_path)!=None )
                     elif unary_op_match.group(2)=='?':
                         check_list.append( lambda x : bool(traverse_own(x, key_path)) )
-
-                elif condition[0] in '!^-':
-                    negative_tags_set.add( condition[1:] )
                 else:
-                    positive_tags_set.add( condition )
+                    tag_match = re.match('([!^-])?(\w+)$', condition)
+                    if tag_match:
+                        if tag_match.group(1):
+                            negative_tags_set.add( tag_match.group(2) )
+                        else:
+                            positive_tags_set.add( tag_match.group(2) )
+                    else:
+                        raise(SyntaxError("Could not parse the condition '{}'".format(condition)))
 
     objects_found = []
 
