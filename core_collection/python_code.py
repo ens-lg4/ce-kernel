@@ -23,6 +23,8 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
             clip byquery key1.ind2.key3>1234  ,{ get_path       #                    is greater than 1234
             clip byquery key1.ind2.key3<=1234 ,{ get_name       #           is less than or equal to 1234
             clip byquery key1.ind2.key3>=1234 ,{ get_path       #        is greater than or equal to 1234
+            clip byquery solar.planets:Mars   ,{ get_path       #   is a list and contains the value Mars
+            clip byquery solar.planets!:Titan ,{ get_path       #   is a list and does not contain the value Titan
             clip byquery key1.key2.key3.      ,{ get_name       # the path key1.key2.key3 exists
             clip byquery key1.ind2.key3?      ,{ get_path       # the path key1.ind2.key3 converts to True (Python rules)
     """
@@ -95,7 +97,7 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
 
         import re
         for condition in conditions:
-            binary_op_match = re.match('([\w\.]*\w)(=|==|!=|<>|<|>|<=|>=)(-?[\w\.]+)$', condition)
+            binary_op_match = re.match('([\w\.]*\w)(=|==|!=|<>|<|>|<=|>=|:|!:)(-?[\w\.]+)$', condition)
             if binary_op_match:
                 key_path    = binary_op_match.group(1).split('.')
                 test_val    = to_num_or_not_to_num(binary_op_match.group(3))
@@ -111,6 +113,10 @@ def byquery(query, name_2_path, collections_searchpath, __entry__=None, __kernel
                     check_list.append( traverse_and_apply(key_path, lambda x, y : x!=None and x<=y, test_val) )
                 elif binary_op_match.group(2)=='>=':
                     check_list.append( traverse_and_apply(key_path, lambda x, y : x!=None and x>=y, test_val) )
+                elif binary_op_match.group(2)==':':
+                    check_list.append( traverse_and_apply(key_path, lambda x, y : type(x)==list and y in x, test_val) )
+                elif binary_op_match.group(2)=='!:':
+                    check_list.append( traverse_and_apply(key_path, lambda x, y : type(x)==list and y not in x, test_val) )
             else:
                 unary_op_match = re.match('([\w\.]*\w)(\.|\?)$', condition)
                 if unary_op_match:
