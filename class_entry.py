@@ -4,7 +4,7 @@
     Provides two classes, MicroKernel and Entry.
 """
 
-__version__ = '0.1.8'   # Try not to forget to update it!
+__version__ = '0.1.9'   # Try not to forget to update it!
 
 import os
 import utils
@@ -14,10 +14,11 @@ core_repository_path = os.path.dirname( os.path.realpath(__file__) )    # depend
 
 
 class MicroKernel:
-    def __init__(self, parameters_location=('parameters.json',[]), code_container_name='python_code'):
+    def __init__(self, parameters_location=('parameters.json',[]), code_container_name='python_code', entry_cache=None):
         self.parameters_location    = parameters_location
         self.code_container_name    = code_container_name
-        self.cached_wc              = None
+        self.entry_cache            = entry_cache
+
 
     def version(self):
         """
@@ -48,9 +49,19 @@ class MicroKernel:
         return Entry(*args, **kwargs, entry_path=path, kernel=self)
 
 
+    def cached(self, entry_name):
+        # entry_cache cannot be populated during __init__() because of circular references, so we lazy-load it
+        if self.entry_cache==None:
+            print("KERNEL.cached({}) - populating entry_cache".format(entry_name))
+            self.entry_cache = {}
+            self.entry_cache['core_collection']     = self.bypath( self.get_kernel_path('core_collection') )
+            self.entry_cache['working_collection']  = self.bypath( self.get_kernel_path('working_collection') )
+
+        return self.entry_cache.get(entry_name)
+
+
     def working_collection(self):
-        self.cached_wc = self.cached_wc or self.bypath( self.get_kernel_path('working_collection') )
-        return self.cached_wc
+        return self.cached('working_collection')
 
 
     def byname(self, entry_name, collection_object=None):
@@ -58,12 +69,17 @@ class MicroKernel:
             Usage example:
                 clip byname --entry_name=iterative_functions , factorial --n=6 , fibonacci --n=8
         """
-        collection_object = collection_object or self.working_collection()
+        print("KERNEL.byname({})".format(entry_name))
 
-        print("KERNEL.byname({} in {})".format(entry_name, collection_object.get_name()))
+        if not collection_object:
+            cached_object = self.cached(entry_name)
+            if cached_object:
+                print("KERNEL.byname({}) was found in cache".format(entry_name))
+                return cached_object
+            else:
+                collection_object = self.working_collection()
 
         return collection_object.call('byname', { 'entry_name' : entry_name} )
-
 
 
 default_kernel_instance = MicroKernel()

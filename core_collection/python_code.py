@@ -172,6 +172,9 @@ def byname(entry_name, name_2_path, collections_searchpath, __entry__=None, __ke
     """ Find a relative path of the named entry in this collection entry's index.
     """
 
+    if entry_name == __entry__.get_name():
+        return __entry__
+
     relative_path   = name_2_path.get(entry_name)
 
     if relative_path:
