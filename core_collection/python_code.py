@@ -172,21 +172,16 @@ def byname(entry_name, name_2_path, collections_searchpath, __entry__=None, __ke
     """ Find a relative path of the named entry in this collection entry's index.
     """
 
-    if entry_name == __entry__.get_name():
-        return __entry__
-
     relative_path   = name_2_path.get(entry_name)
-
     if relative_path:
-        if __entry__:
-            full_path = __entry__.get_path(relative_path)
-            return __kernel__.bypath( full_path )
-        else:
-            return relative_path
+        return __kernel__.bypath( __entry__.get_path(relative_path) )
+
     # Recursion into collections:
     #
     elif collections_searchpath:
+        print("COLLECTION.byname({}) recursing ...".format(entry_name))
         for subcollection_name in collections_searchpath:
+            print("COLLECTION.byname({}) checking in {}...".format(entry_name, subcollection_name))
             if subcollection_name.find('/')>=0:
                 subcollection_object    = __kernel__.bypath(subcollection_name)
             else:
